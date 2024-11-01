@@ -3,22 +3,22 @@ using UnityEngine.SceneManagement;
 
 public class ZombieController : MonoBehaviour
 {
-    public GameObject car;                   // Reference to the car object
-    public GameObject questionPanel;         // UI panel with the math question
-    public float activationDistance = 100f;  // Distance at which zombie appears (squared distance)
+    public GameObject car;
+    public GameObject questionPanel;
+    public float activationDistance = 100f;
+    public MonoBehaviour carMovementScript;
 
-    private Renderer zombieRenderer;         // Renderer component of the zombie
-    private bool isNearCar = false;          // To track if the car is near the zombie
+    private Renderer zombieRenderer;
+    private bool isNearCar = false;
 
     void Start()
     {
-        // Use GetComponentInChildren to find the renderer on any child objects
         zombieRenderer = GetComponentInChildren<Renderer>();
-        questionPanel.SetActive(false);      // Initially hide the question panel
+        questionPanel.SetActive(false);
 
         if (zombieRenderer != null)
         {
-            zombieRenderer.enabled = false;  // Initially hide the zombie
+            zombieRenderer.enabled = false;
         }
         else
         {
@@ -35,7 +35,7 @@ public class ZombieController : MonoBehaviour
             if (!isNearCar)
             {
                 isNearCar = true;
-                zombieRenderer.enabled = true;  // Show the zombie
+                zombieRenderer.enabled = true;
                 Debug.Log("Zombie showed");
             }
         }
@@ -44,7 +44,7 @@ public class ZombieController : MonoBehaviour
             if (isNearCar)
             {
                 isNearCar = false;
-                zombieRenderer.enabled = false; // Hide the zombie
+                zombieRenderer.enabled = false;
                 Debug.Log("Zombie Gone");
             }
         }
@@ -52,27 +52,30 @@ public class ZombieController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-          questionPanel.SetActive(true);   // Show the question UI when car collides with zombie
-          Debug.Log("Question Shown");
+        questionPanel.SetActive(true);
+        carMovementScript.enabled = false;
+        Debug.Log("Question Shown");
     }
 
-    // Method to call when the correct answer button is pressed
     public void OnCorrectAnswer()
     {
-        questionPanel.SetActive(false);   // Hide the question panel
-        Destroy(gameObject);              // Destroy the zombie
+        questionPanel.SetActive(false);
+        carMovementScript.enabled = true;
+        Destroy(gameObject);
         Debug.Log("Correct answer! Zombie defeated.");
     }
 
-    // Method to call when the incorrect answer button is pressed
     public void OnIncorrectAnswer()
     {
-        SceneManager.LoadScene("LevelLost");  // Load the LevelLost scene
-        Debug.Log("Incorrect answer. Game over.");
-    }
+        HealthManager.Instance.LoseLife();  
 
-    //public void CloseQuestionPanel()
-    //{
-    //    questionPanel.SetActive(false);      // Close the question UI after answering
-    //}
+        if (HealthManager.Instance.GetCurrentLives() <= 0)
+        {
+            SceneManager.LoadScene("LevelLost");  
+        }
+        else
+        {
+            Debug.Log("Incorrect answer. Lives left: " + HealthManager.Instance.GetCurrentLives());
+        }
+    }
 }
