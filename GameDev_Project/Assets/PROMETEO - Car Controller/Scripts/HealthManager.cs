@@ -4,6 +4,7 @@ public class HealthManager : MonoBehaviour
 {
     public static HealthManager Instance { get; private set; }
     private int lives = 3;
+    public UIManager uiManager;
 
     private void Awake()
     {
@@ -20,10 +21,16 @@ public class HealthManager : MonoBehaviour
 
     public void LoseLife()
     {
-        if (lives > 0)
+        lives--;
+        if (lives < 0) lives = 0;
+
+        if (uiManager != null)
         {
-            lives--;
-            Debug.Log("Lifes left: "+lives);
+            uiManager.UpdateLivesDisplay(); 
+        }
+        else
+        {
+            Debug.LogWarning("UIManager instance is not set in HealthManager.");
         }
     }
 
