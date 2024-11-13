@@ -504,7 +504,7 @@ public class PrometeoCarController : MonoBehaviour
         }
         else
         {
-            // Release brakes when re-enabling controls
+            // zpombie following and no white screen for options then  timer or health bar and zombie doing damage to car
             frontLeftCollider.brakeTorque = 0;
             frontRightCollider.brakeTorque = 0;
             rearLeftCollider.brakeTorque = 0;
