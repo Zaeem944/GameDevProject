@@ -37,6 +37,8 @@ public class ZombieController : MonoBehaviour
     private ZombieState currentState = ZombieState.Idle;
     private float dissolveAmount = 0f;
     private static int zombiesDefeated = 0;
+    private bool isAttacking = false;
+    private float attackCooldown = 2f;
 
     private enum ZombieState
     {
@@ -226,6 +228,72 @@ public class ZombieController : MonoBehaviour
         else
         {
             Debug.Log("Incorrect answer. Lives left: " + HealthManager.Instance.GetCurrentLives());
+        }
+    }
+
+    private void PerformAttack()
+    {
+        // Only attack periodically
+        if (!isAttacking)
+        {
+            StartCoroutine(AttackSequence());
+        }
+    }
+
+    private IEnumerator AttackSequence()
+    {
+        isAttacking = true;
+        
+        // Play attack animation
+        zombieAnimator?.SetTrigger("Attack");
+        
+        // Play attack sound
+        if (audioSource && attackSound)
+        {
+            audioSource.PlayOneShot(attackSound);
+        }
+        
+        // Deal damage after a small delay
+        yield return new WaitForSeconds(0.5f);
+        
+        // Check if still in range before dealing damage
+        float distanceToCar = Vector3.Distance(car.transform.position, transform.position);
+        if (distanceToCar <= stoppingDistance)
+        {
+            HealthManager.Instance.LoseLife();
+        }
+        
+        // Wait for cooldown
+        yield return new WaitForSeconds(attackCooldown);
+        isAttacking = false;
+    }
+
+    private void UpdateVisualEffects()
+    {
+        // Update dissolve effect if dying
+        if (currentState == ZombieState.Dying)
+        {
+            dissolveAmount += Time.deltaTime / dissolveTime;
+            if (dissolveMaterial != null)
+            {
+                dissolveMaterial.SetFloat("_DissolveAmount", dissolveAmount);
+            }
+        }
+        
+        // Update particle systems
+        if (deathEffect != null && currentState == ZombieState.Dying)
+        {
+            if (!deathEffect.isPlaying)
+            {
+                deathEffect.Play();
+            }
+        }
+        
+        // Update animations based on state
+        if (zombieAnimator != null)
+        {
+            zombieAnimator.SetBool("IsWalking", currentState == ZombieState.Pursuing);
+            zombieAnimator.SetBool("IsAttacking", currentState == ZombieState.Attacking);
         }
     }
 }
