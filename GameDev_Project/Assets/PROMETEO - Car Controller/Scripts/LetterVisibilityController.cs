@@ -1,23 +1,34 @@
 using UnityEngine;
+using TMPro;
 
 public class LettersVisibilityController : MonoBehaviour
 {
-    [SerializeField] private GameObject car; // Reference to the car object
-    [SerializeField] private GameObject[] letters; // Array of letter objects to control visibility
-    [SerializeField] private float detectionRange = 5.0f; // Range within which letters will appear
+    [SerializeField] private GameObject car;
+    [SerializeField] private GameObject[] letters;
+    [SerializeField] private float detectionRange = 5.0f;
+    
+    [Header("Finish Line")]
+    [SerializeField] private TextMeshProUGUI finishLineText;
+    [SerializeField] private float finishLineShowDistance = 10f;
+    [SerializeField] private ParticleSystem finishLineParticles;
+    [SerializeField] private Material finishLineMaterial;
+    [SerializeField] private float pulseSpeed = 1f;
+    [SerializeField] private Color glowColor = Color.yellow;
 
     private void Start()
     {
-        // Hide all letters initially
         SetLettersActive(false);
+        if (finishLineText != null)
+        {
+            finishLineText.gameObject.SetActive(false);
+        }
     }
 
     private void Update()
     {
-        // Calculate distance between the car and each letter object
         float distance = Vector3.Distance(car.transform.position, transform.position);
 
-        // If the car is within range, show the letters; otherwise, hide them
+        // Handle regular letters visibility
         if (distance <= detectionRange)
         {
             SetLettersActive(true);
@@ -26,9 +37,54 @@ public class LettersVisibilityController : MonoBehaviour
         {
             SetLettersActive(false);
         }
+
+        // Handle finish line effects
+        if (distance <= finishLineShowDistance)
+        {
+            ShowFinishLineEffects();
+            UpdateFinishLineAnimation();
+        }
+        else
+        {
+            HideFinishLineEffects();
+        }
     }
 
-    // Method to set all letters active or inactive
+    private void ShowFinishLineEffects()
+    {
+        if (finishLineText != null)
+        {
+            finishLineText.gameObject.SetActive(true);
+        }
+        if (finishLineParticles != null && !finishLineParticles.isPlaying)
+        {
+            finishLineParticles.Play();
+        }
+    }
+
+    private void HideFinishLineEffects()
+    {
+        if (finishLineText != null)
+        {
+            finishLineText.gameObject.SetActive(false);
+        }
+        if (finishLineParticles != null)
+        {
+            finishLineParticles.Stop();
+        }
+    }
+
+    private void UpdateFinishLineAnimation()
+    {
+        if (finishLineText != null)
+        {
+            // Create pulsing effect
+            float pulse = (Mathf.Sin(Time.time * pulseSpeed) + 1f) / 2f;
+            finishLineText.color = Color.Lerp(Color.white, glowColor, pulse);
+            finishLineText.transform.localScale = Vector3.one * (1f + pulse * 0.1f);
+        }
+    }
+
     private void SetLettersActive(bool isActive)
     {
         foreach (GameObject letter in letters)
