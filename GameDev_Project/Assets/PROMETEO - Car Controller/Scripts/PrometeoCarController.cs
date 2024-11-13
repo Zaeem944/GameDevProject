@@ -1,4 +1,3 @@
-
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -90,6 +89,7 @@ public class PrometeoCarController : MonoBehaviour
     private bool deceleratingCar;
     private bool touchControlsSetup = false;
     private float driftingAxis;
+    private bool isControlEnabled = true;
 
     // Wheel friction curves
     private WheelFrictionCurve FLwheelFriction;
@@ -179,6 +179,8 @@ public class PrometeoCarController : MonoBehaviour
 
     private void HandleInput()
     {
+        if (!isControlEnabled) return;
+
         if (useTouchControls && touchControlsSetup)
         {
             if (throttlePTI.buttonPressed)
@@ -488,6 +490,17 @@ public class PrometeoCarController : MonoBehaviour
             RRWParticleSystem?.Stop();
             if (RLWTireSkid != null) RLWTireSkid.emitting = false;
             if (RRWTireSkid != null) RRWTireSkid.emitting = false;
+        }
+    }
+
+    public void SetCarControlsEnabled(bool enabled)
+    {
+        isControlEnabled = enabled;
+        if (!enabled)
+        {
+            // Stop the car when controls are disabled
+            GetComponent<Rigidbody>().velocity = Vector3.zero;
+            GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
         }
     }
 }
