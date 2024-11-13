@@ -6,7 +6,7 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private GameObject car;
     [SerializeField] private GameObject questionPanel;
     [SerializeField] private float activationDistance = 100f;
-    [SerializeField] private MonoBehaviour carMovementScript;
+    [SerializeField] private PrometeoCarController carController;
 
     private Renderer zombieRenderer;
     private bool isNearCar = false;
@@ -52,15 +52,18 @@ public class ZombieController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        questionPanel.SetActive(true);
-        carMovementScript.enabled = false;
-        Debug.Log("Question Shown");
+        if (other.gameObject == car)
+        {
+            questionPanel.SetActive(true);
+            carController.SetCarControlsEnabled(false);
+            Debug.Log("Question Shown");
+        }
     }
 
     public void OnCorrectAnswer()
     {
         questionPanel.SetActive(false);
-        carMovementScript.enabled = true;
+        carController.SetCarControlsEnabled(true);
         Destroy(gameObject);
         Debug.Log("Correct answer! Zombie defeated.");
     }
