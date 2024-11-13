@@ -14,7 +14,8 @@ public class ZombieController : MonoBehaviour
 
     void Start()
     {
-        zombieRenderer = GetComponentInChildren<Renderer>();
+        // Assuming the Renderer is on the parent object (Zombie 1)
+        zombieRenderer = GetComponent<Renderer>();
         questionPanel.SetActive(false);
 
         if (zombieRenderer != null)
@@ -23,7 +24,7 @@ public class ZombieController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Renderer not found on zombie or its children.");
+            Debug.LogWarning("Renderer not found on Zombie 1.");
         }
     }
 
@@ -40,7 +41,7 @@ public class ZombieController : MonoBehaviour
                 Debug.Log("Zombie showed");
             }
 
-            // Move the zombie towards the car when it's close enough
+            // Move the root zombie object (Zombie 1) towards the car
             MoveTowardsCar();
         }
         else
@@ -56,7 +57,7 @@ public class ZombieController : MonoBehaviour
 
     private void MoveTowardsCar()
     {
-        // Move the zombie slowly toward the car
+        // Move the root zombie object (Zombie 1) slowly toward the car
         Vector3 direction = (car.transform.position - transform.position).normalized;
         transform.position += direction * moveSpeed * Time.deltaTime;
     }
