@@ -8,6 +8,8 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private float activationDistance = 100f;
     [SerializeField] private float moveSpeed = 2f;  // Speed at which the zombie moves toward the car
     [SerializeField] private PrometeoCarController carController;
+    [SerializeField] private Animator zombieAnimator; // Reference to the animator
+    [SerializeField] private float rotationSpeed = 5f; // Speed at which zombie rotates to face car
 
     private Renderer zombieRenderer;
     private bool isNearCar = false;
@@ -16,6 +18,7 @@ public class ZombieController : MonoBehaviour
     {
         // Assuming the Renderer is on the parent object (Zombie 1)
         zombieRenderer = GetComponent<Renderer>();
+        ]
         questionPanel.SetActive(false);
 
         if (zombieRenderer != null)
@@ -57,9 +60,21 @@ public class ZombieController : MonoBehaviour
 
     private void MoveTowardsCar()
     {
-        // Move the root zombie object (Zombie 1) slowly toward the car
+        // Calculate direction to car
         Vector3 direction = (car.transform.position - transform.position).normalized;
-        transform.position += direction * moveSpeed * Time.deltaTime;
+        
+        // Rotate zombie to face the car
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        
+        // Move zombie forward
+        transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);
+        
+        // Set animation parameter if we have an animator
+        if (zombieAnimator != null)
+        {
+            zombieAnimator.SetBool("IsWalking", true);
+        }
     }
 
     private void OnTriggerEnter(Collider other)
