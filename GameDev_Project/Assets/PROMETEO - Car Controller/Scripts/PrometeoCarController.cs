@@ -7,62 +7,44 @@ public class PrometeoCarController : MonoBehaviour
 {
     // CAR SETUP
     [Header("CAR SETUP")]
-    [Space(10)]
-    [Range(20, 190)] public int maxSpeed = 90; // Maximum speed in km/h.
-    [Range(10, 120)] public int maxReverseSpeed = 45; // Maximum reverse speed in km/h.
-    [Range(1, 10)] public int accelerationMultiplier = 2; // Acceleration rate.
-    [Space(10)]
-    [Range(10, 45)] public int maxSteeringAngle = 27; // Maximum steering angle.
-    [Range(0.1f, 1f)] public float steeringSpeed = 0.5f; // Steering speed.
-    [Space(10)]
-    [Range(100, 600)] public int brakeForce = 350; // Brake force.
-    [Range(1, 10)] public int decelerationMultiplier = 2; // Deceleration rate.
-    [Range(1, 10)] public int handbrakeDriftMultiplier = 5; // Drift multiplier when handbraking.
-    [Space(10)]
-    public Vector3 bodyMassCenter; // Center of mass of the car.
+    [Range(20, 190)] public int maxSpeed = 90;
+    [Range(10, 120)] public int maxReverseSpeed = 45;
+    [Range(1, 10)] public int accelerationMultiplier = 2;
+    [Range(10, 45)] public int maxSteeringAngle = 27;
+    [Range(0.1f, 1f)] public float steeringSpeed = 0.5f;
+    [Range(100, 600)] public int brakeForce = 350;
+    [Range(1, 10)] public int decelerationMultiplier = 2;
+    [Range(1, 10)] public int handbrakeDriftMultiplier = 5;
+    public Vector3 bodyMassCenter;
 
     // WHEELS
-    [Header("WHEELS")]
-    [Space(10)]
     public GameObject frontLeftMesh;
     public WheelCollider frontLeftCollider;
-    [Space(10)]
     public GameObject frontRightMesh;
     public WheelCollider frontRightCollider;
-    [Space(10)]
     public GameObject rearLeftMesh;
     public WheelCollider rearLeftCollider;
-    [Space(10)]
     public GameObject rearRightMesh;
     public WheelCollider rearRightCollider;
 
     // EFFECTS
-    [Header("EFFECTS")]
-    [Space(10)]
     public bool useEffects = false;
-    public ParticleSystem RLWParticleSystem; // Rear Left Wheel Particle System
-    public ParticleSystem RRWParticleSystem; // Rear Right Wheel Particle System
-    [Space(10)]
-    public TrailRenderer RLWTireSkid; // Rear Left Wheel Tire Skid
-    public TrailRenderer RRWTireSkid; // Rear Right Wheel Tire Skid
+    public ParticleSystem RLWParticleSystem;
+    public ParticleSystem RRWParticleSystem;
+    public TrailRenderer RLWTireSkid;
+    public TrailRenderer RRWTireSkid;
 
     // UI
-    [Header("UI")]
-    [Space(10)]
     public bool useUI = false;
-    public Text carSpeedText; // UI Text to display car speed.
+    public Text carSpeedText;
 
     // SOUNDS
-    [Header("SOUNDS")]
-    [Space(10)]
     public bool useSounds = false;
-    public AudioSource carEngineSound; // Engine sound.
-    public AudioSource tireScreechSound; // Tire screech sound.
-    private float initialCarEngineSoundPitch; // Initial pitch of engine sound.
+    public AudioSource carEngineSound;
+    public AudioSource tireScreechSound;
+    private float initialCarEngineSoundPitch;
 
     // CONTROLS
-    [Header("CONTROLS")]
-    [Space(10)]
     public bool useTouchControls = false;
     public GameObject throttleButton;
     public GameObject reverseButton;
@@ -77,20 +59,26 @@ public class PrometeoCarController : MonoBehaviour
     private PrometeoTouchInput handbrakePTI;
 
     // CAR DATA
-    [HideInInspector] public float carSpeed; // Current speed of the car.
-    [HideInInspector] public bool isDrifting; // Is the car drifting.
-    [HideInInspector] public bool isTractionLocked; // Is the car's traction locked.
+    [HideInInspector] public float carSpeed;
+    [HideInInspector] public bool isDrifting;
+    [HideInInspector] public bool isTractionLocked;
 
     // PRIVATE VARIABLES
-    private Rigidbody carRigidbody; // Rigidbody of the car.
-    private float steeringAxis; // Steering input axis.
-    private float throttleAxis; // Throttle input axis.
+    private Rigidbody carRigidbody;
+    private float steeringAxis;
+    private float throttleAxis;
     private float localVelocityZ;
     private float localVelocityX;
     private bool deceleratingCar;
     private bool touchControlsSetup = false;
     private float driftingAxis;
 
+    // Control state
+    private bool isControlEnabled = true; // New variable to track control state
+    private float throttleInput = 0;      // To track throttle input
+    private float steeringInput = 0;      // To track steering input
+    private float handbrakeInput = 0;     // To track handbrake input
+    private float currentSpeed = 0;       // To track current speed
     // Wheel friction curves
     private WheelFrictionCurve FLwheelFriction;
     private float FLWextremumSlip;
@@ -147,7 +135,7 @@ public class PrometeoCarController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Touch controls are not completely set up. You must drag and drop your scene buttons in the PrometeoCarController component.");
+                Debug.LogWarning("Touch controls are not completely set up.");
             }
         }
     }
@@ -494,32 +482,35 @@ public class PrometeoCarController : MonoBehaviour
     }
 
     public void SetCarControlsEnabled(bool enabled)
-{
-    isControlEnabled = enabled;
-    if (!enabled)
     {
-        // Reset all movement inputs
-        throttleInput = 0;
-        steeringInput = 0;
-        handbrakeInput = 1; // Apply handbrake
-        currentSpeed = 0;
-        
-        // Stop rotation
-        GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-        
-        // Apply brake force to all wheels
-        frontLeftCollider.brakeTorque = brakeForce;
-        frontRightCollider.brakeTorque = brakeForce;
-        rearLeftCollider.brakeTorque = brakeForce;
-        rearRightCollider.brakeTorque = brakeForce;
+        isControlEnabled = enabled;
+
+        if (!enabled)
+        {
+            // Reset all movement inputs
+            throttleInput = 0;
+            steeringInput = 0;
+            handbrakeInput = 1; // Apply handbrake
+            currentSpeed = 0;
+
+            // Stop rotation
+            carRigidbody.angularVelocity = Vector3.zero;
+
+            // Apply brake force to all wheels
+            frontLeftCollider.brakeTorque = brakeForce;
+            frontRightCollider.brakeTorque = brakeForce;
+            rearLeftCollider.brakeTorque = brakeForce;
+            rearRightCollider.brakeTorque = brakeForce;
+        }
+        else
+        {
+            // Release brakes when re-enabling controls
+            frontLeftCollider.brakeTorque = 0;
+            frontRightCollider.brakeTorque = 0;
+            rearLeftCollider.brakeTorque = 0;
+            rearRightCollider.brakeTorque = 0;
+            handbrakeInput = 0;
+        }
     }
-    else
-    {
-        // Release brakes when re-enabling controls
-        frontLeftCollider.brakeTorque = 0;
-        frontRightCollider.brakeTorque = 0;
-        rearLeftCollider.brakeTorque = 0;
-        rearRightCollider.brakeTorque = 0;
-        handbrakeInput = 0;
-    }
+
 }

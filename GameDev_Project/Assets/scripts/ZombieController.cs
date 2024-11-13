@@ -61,16 +61,12 @@ public class ZombieController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject == car)
-        {
-            // Start hitting animation
-            animator.SetTrigger("Hit");
-
-            // Optionally, disable car controls and show question panel
+        
+        
             questionPanel.SetActive(true);
             carController.SetCarControlsEnabled(false);
-            Debug.Log("Zombie is hitting the car!");
-        }
+            Debug.Log("Question Shown");
+        
     }
 
     public void OnCorrectAnswer()
