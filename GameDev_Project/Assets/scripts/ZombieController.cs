@@ -3,10 +3,10 @@ using UnityEngine.SceneManagement;
 
 public class ZombieController : MonoBehaviour
 {
-    public GameObject car;
-    public GameObject questionPanel;
-    public float activationDistance = 100f;
-    public MonoBehaviour carMovementScript;
+    [SerializeField] private GameObject car;
+    [SerializeField] private GameObject questionPanel;
+    [SerializeField] private float activationDistance = 100f;
+    [SerializeField] private MonoBehaviour carMovementScript;
 
     private Renderer zombieRenderer;
     private bool isNearCar = false;

@@ -4,7 +4,7 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public TextMeshProUGUI livesText;  
+    [SerializeField] private TextMeshProUGUI livesText;  
 
     private void Start()
     {
