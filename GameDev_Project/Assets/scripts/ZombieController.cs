@@ -8,14 +8,18 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private float activationDistance = 100f;
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private PrometeoCarController carController;
+    [SerializeField] private int zombieGroanSoundIndex = 0;
+
+    // Remove this line as we don't need to reference the AudioManager GameObject
+    // [SerializeField] private GameObject AudioManager;
 
     private Renderer zombieRenderer;
     private bool isNearCar = false;
     private Transform parentTransform;
+    private bool hasCollided = false;
 
     void Start()
     {
-        // Get the parent transform (Zombie 1)
         parentTransform = transform.parent;
         if (parentTransform == null)
         {
@@ -24,7 +28,6 @@ public class ZombieController : MonoBehaviour
             return;
         }
 
-        // Get the renderer from the appropriate object in the hierarchy
         zombieRenderer = GetComponentInChildren<Renderer>();
         questionPanel.SetActive(false);
 
@@ -40,58 +43,71 @@ public class ZombieController : MonoBehaviour
 
     void Update()
     {
-        // Use parent's position for distance calculation
-        float squaredDistance = (car.transform.position - parentTransform.position).sqrMagnitude;
+        if (!hasCollided)
+        {
+            float squaredDistance = (car.transform.position - parentTransform.position).sqrMagnitude;
 
-        if (squaredDistance <= activationDistance)
-        {
-            if (!isNearCar)
+            if (squaredDistance <= activationDistance)
             {
-                isNearCar = true;
-                zombieRenderer.enabled = true;
-                Debug.Log("Zombie showed");
+                if (!isNearCar)
+                {
+                    isNearCar = true;
+                    zombieRenderer.enabled = true;
+                    Debug.Log("Zombie showed");
+                }
+                MoveTowardsCar();
             }
-            MoveTowardsCar();
-        }
-        else
-        {
-            if (isNearCar)
+            else
             {
-                isNearCar = false;
-                zombieRenderer.enabled = false;
-                Debug.Log("Zombie Gone");
+                if (isNearCar)
+                {
+                    isNearCar = false;
+                    zombieRenderer.enabled = false;
+                    Debug.Log("Zombie Gone");
+                }
             }
         }
     }
 
     private void MoveTowardsCar()
     {
-        // Move the parent object instead of this object
-        Vector3 direction = (car.transform.position - parentTransform.position).normalized;
-        parentTransform.position += direction * moveSpeed * Time.deltaTime;
-
-        // Optional: Make the zombie face the car
-        parentTransform.LookAt(car.transform);
+        if (!hasCollided)
+        {
+            Vector3 direction = (car.transform.position - parentTransform.position).normalized;
+            parentTransform.position += direction * moveSpeed * Time.deltaTime;
+            parentTransform.LookAt(car.transform);
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        questionPanel.SetActive(true);
-        carController.SetCarControlsEnabled(false);
-        Debug.Log("Question Shown");
+        if (!hasCollided)
+        {
+            // Use PlayFirstAudio instead of PlaySoundEffect
+            AudioManager.Instance.PlayFirstAudio();
+
+            hasCollided = true;
+            questionPanel.SetActive(true);
+            carController.SetCarControlsEnabled(false);
+            Debug.Log("Question Shown");
+            parentTransform.LookAt(car.transform);
+        }
     }
 
     public void OnCorrectAnswer()
     {
+        // Use PlaySecondAudio instead of PlaySoundEffect
+        AudioManager.Instance.PlaySecondAudio();
+
         questionPanel.SetActive(false);
         carController.SetCarControlsEnabled(true);
-        // Destroy the parent object instead of just this object
         Destroy(parentTransform.gameObject);
         Debug.Log("Correct answer! Zombie defeated.");
     }
 
     public void OnIncorrectAnswer()
     {
+        AudioManager.Instance.PlayThirdAudio();
         HealthManager.Instance.LoseLife();
         if (HealthManager.Instance.GetCurrentLives() <= 0)
         {
