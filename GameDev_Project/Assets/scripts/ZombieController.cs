@@ -52,12 +52,12 @@ public class ZombieController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject == car)
-        {
+        //if (other.gameObject == car)
+        //{
             questionPanel.SetActive(true);
             carController.SetCarControlsEnabled(false);
             Debug.Log("Question Shown");
-        }
+        //}
     }
 
     public void OnCorrectAnswer()
