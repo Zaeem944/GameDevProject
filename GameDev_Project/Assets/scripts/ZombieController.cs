@@ -3,58 +3,181 @@ using UnityEngine.SceneManagement;
 
 public class ZombieController : MonoBehaviour
 {
+    [Header("Core References")]
     [SerializeField] private GameObject car;
     [SerializeField] private GameObject questionPanel;
-    [SerializeField] private float activationDistance = 100f;
-    [SerializeField] private float moveSpeed = 2f;  // Speed at which the zombie moves toward the car
     [SerializeField] private PrometeoCarController carController;
-    [SerializeField] private Animator zombieAnimator; // Reference to the animator
-    [SerializeField] private float rotationSpeed = 5f; // Speed at which zombie rotates to face car
-
+    [SerializeField] private Animator zombieAnimator;
+    
+    [Header("Movement Settings")]
+    [SerializeField] private float activationDistance = 100f;
+    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private float rotationSpeed = 5f;
+    [SerializeField] private float stoppingDistance = 2f;
+    
+    [Header("Visual Effects")]
+    [SerializeField] private ParticleSystem hitEffect;
+    [SerializeField] private ParticleSystem deathEffect;
+    [SerializeField] private Material dissolveMaterial;
+    [SerializeField] private float dissolveTime = 2f;
+    
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip spawnSound;
+    [SerializeField] private AudioClip deathSound;
+    [SerializeField] private AudioClip attackSound;
+    
+    [Header("Difficulty Settings")]
+    [SerializeField] private float healthPoints = 100f;
+    [SerializeField] private float damageAmount = 20f;
+    [SerializeField] private float speedIncreasePerLevel = 0.5f;
+    
     private Renderer zombieRenderer;
     private bool isNearCar = false;
+    private ZombieState currentState = ZombieState.Idle;
+    private float dissolveAmount = 0f;
+    private static int zombiesDefeated = 0;
+
+    private enum ZombieState
+    {
+        Idle,
+        Pursuing,
+        Attacking,
+        Stunned,
+        Dying
+    }
 
     void Start()
     {
-        // Assuming the Renderer is on the parent object (Zombie 1)
-        zombieRenderer = GetComponent<Renderer>();
-        ]
-        questionPanel.SetActive(false);
+        InitializeZombie();
+        AdjustDifficultyBasedOnProgress();
+    }
 
-        if (zombieRenderer != null)
+    private void InitializeZombie()
+    {
+        zombieRenderer = GetComponent<Renderer>();
+        questionPanel.SetActive(false);
+        zombieRenderer.enabled = false;
+        
+        if (audioSource && spawnSound)
         {
-            zombieRenderer.enabled = false;
+            audioSource.PlayOneShot(spawnSound);
         }
-        else
-        {
-            Debug.LogWarning("Renderer not found on Zombie 1.");
-        }
+    }
+
+    private void AdjustDifficultyBasedOnProgress()
+    {
+        moveSpeed += speedIncreasePerLevel * (zombiesDefeated / 5);
+        healthPoints += (zombiesDefeated / 3) * 20f;
     }
 
     void Update()
     {
-        float squaredDistance = (car.transform.position - transform.position).sqrMagnitude;
+        UpdateZombieState();
+        UpdateVisualEffects();
+    }
 
-        if (squaredDistance <= activationDistance)
+    private void UpdateZombieState()
+    {
+        float distanceToCar = Vector3.Distance(car.transform.position, transform.position);
+
+        switch (currentState)
         {
-            if (!isNearCar)
-            {
-                isNearCar = true;
-                zombieRenderer.enabled = true;
-                Debug.Log("Zombie showed");
-            }
+            case ZombieState.Idle:
+                if (distanceToCar <= activationDistance)
+                {
+                    TransitionToState(ZombieState.Pursuing);
+                }
+                break;
 
-            // Move the root zombie object (Zombie 1) towards the car
-            MoveTowardsCar();
+            case ZombieState.Pursuing:
+                if (distanceToCar <= stoppingDistance)
+                {
+                    TransitionToState(ZombieState.Attacking);
+                }
+                else
+                {
+                    MoveTowardsCar();
+                }
+                break;
+
+            case ZombieState.Attacking:
+                if (distanceToCar > stoppingDistance)
+                {
+                    TransitionToState(ZombieState.Pursuing);
+                }
+                PerformAttack();
+                break;
+        }
+    }
+
+    private void TransitionToState(ZombieState newState)
+    {
+        currentState = newState;
+        
+        switch (newState)
+        {
+            case ZombieState.Pursuing:
+                zombieAnimator?.SetBool("IsWalking", true);
+                break;
+            case ZombieState.Attacking:
+                zombieAnimator?.SetTrigger("Attack");
+                if (audioSource && attackSound)
+                {
+                    audioSource.PlayOneShot(attackSound);
+                }
+                break;
+            case ZombieState.Dying:
+                StartDeath();
+                break;
+        }
+    }
+
+    private void StartDeath()
+    {
+        if (deathEffect)
+        {
+            deathEffect.Play();
+        }
+        if (audioSource && deathSound)
+        {
+            audioSource.PlayOneShot(deathSound);
+        }
+        zombieAnimator?.SetTrigger("Death");
+        zombiesDefeated++;
+        Invoke("OnDeathComplete", dissolveTime);
+    }
+
+    private void OnDeathComplete()
+    {
+        Destroy(gameObject);
+    }
+
+    public void TakeDamage(float damage)
+    {
+        healthPoints -= damage;
+        if (hitEffect)
+        {
+            hitEffect.Play();
+        }
+        
+        if (healthPoints <= 0)
+        {
+            TransitionToState(ZombieState.Dying);
         }
         else
         {
-            if (isNearCar)
-            {
-                isNearCar = false;
-                zombieRenderer.enabled = false;
-                Debug.Log("Zombie Gone");
-            }
+            StartCoroutine(FlashDamage());
+        }
+    }
+
+    private System.Collections.IEnumerator FlashDamage()
+    {
+        if (zombieRenderer.material.HasProperty("_FlashAmount"))
+        {
+            zombieRenderer.material.SetFloat("_FlashAmount", 1f);
+            yield return new WaitForSeconds(0.1f);
+            zombieRenderer.material.SetFloat("_FlashAmount", 0f);
         }
     }
 
@@ -79,12 +202,9 @@ public class ZombieController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        //if (other.gameObject == car)
-        //{
         questionPanel.SetActive(true);
         carController.SetCarControlsEnabled(false);
         Debug.Log("Question Shown");
-        //}
     }
 
     public void OnCorrectAnswer()
