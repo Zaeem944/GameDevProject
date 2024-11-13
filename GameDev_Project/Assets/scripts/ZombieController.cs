@@ -245,7 +245,10 @@ public class ZombieController : MonoBehaviour
         isAttacking = true;
         
         // Play attack animation
-        zombieAnimator?.SetTrigger("Attack");
+        if (zombieAnimator != null)
+        {
+            zombieAnimator.SetTrigger("Attack");
+        }
         
         // Play attack sound
         if (audioSource && attackSound)
