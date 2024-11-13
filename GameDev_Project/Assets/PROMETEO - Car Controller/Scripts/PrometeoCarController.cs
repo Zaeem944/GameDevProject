@@ -1,3 +1,4 @@
+
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -89,7 +90,6 @@ public class PrometeoCarController : MonoBehaviour
     private bool deceleratingCar;
     private bool touchControlsSetup = false;
     private float driftingAxis;
-    private bool isControlEnabled = true;
 
     // Wheel friction curves
     private WheelFrictionCurve FLwheelFriction;
@@ -494,13 +494,32 @@ public class PrometeoCarController : MonoBehaviour
     }
 
     public void SetCarControlsEnabled(bool enabled)
+{
+    isControlEnabled = enabled;
+    if (!enabled)
     {
-        isControlEnabled = enabled;
-        if (!enabled)
-        {
-            // Stop the car when controls are disabled
-            GetComponent<Rigidbody>().velocity = Vector3.zero;
-            GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-        }
+        // Reset all movement inputs
+        throttleInput = 0;
+        steeringInput = 0;
+        handbrakeInput = 1; // Apply handbrake
+        currentSpeed = 0;
+        
+        // Stop rotation
+        GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+        
+        // Apply brake force to all wheels
+        frontLeftCollider.brakeTorque = brakeForce;
+        frontRightCollider.brakeTorque = brakeForce;
+        rearLeftCollider.brakeTorque = brakeForce;
+        rearRightCollider.brakeTorque = brakeForce;
+    }
+    else
+    {
+        // Release brakes when re-enabling controls
+        frontLeftCollider.brakeTorque = 0;
+        frontRightCollider.brakeTorque = 0;
+        rearLeftCollider.brakeTorque = 0;
+        rearRightCollider.brakeTorque = 0;
+        handbrakeInput = 0;
     }
 }
