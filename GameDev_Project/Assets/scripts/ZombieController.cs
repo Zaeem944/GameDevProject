@@ -6,14 +6,18 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private GameObject car;
     [SerializeField] private GameObject questionPanel;
     [SerializeField] private float activationDistance = 100f;
+    [SerializeField] private float moveSpeed = 2f; // Adjust the speed as needed
     [SerializeField] private PrometeoCarController carController;
 
     private Renderer zombieRenderer;
+    private Animator animator;
     private bool isNearCar = false;
 
     void Start()
     {
         zombieRenderer = GetComponentInChildren<Renderer>();
+        animator = GetComponentInChildren<Animator>();
+
         questionPanel.SetActive(false);
 
         if (zombieRenderer != null)
@@ -30,7 +34,7 @@ public class ZombieController : MonoBehaviour
     {
         float squaredDistance = (car.transform.position - transform.position).sqrMagnitude;
 
-        if (squaredDistance <= activationDistance)
+        if (squaredDistance <= activationDistance * activationDistance)
         {
             if (!isNearCar)
             {
@@ -38,6 +42,11 @@ public class ZombieController : MonoBehaviour
                 zombieRenderer.enabled = true;
                 Debug.Log("Zombie showed");
             }
+
+            // Move towards the car
+            Vector3 direction = (car.transform.position - transform.position).normalized;
+            transform.position += direction * moveSpeed * Time.deltaTime;
+            transform.LookAt(car.transform.position);
         }
         else
         {
@@ -54,9 +63,13 @@ public class ZombieController : MonoBehaviour
     {
         if (other.gameObject == car)
         {
+            // Start hitting animation
+            animator.SetTrigger("Hit");
+
+            // Optionally, disable car controls and show question panel
             questionPanel.SetActive(true);
             carController.SetCarControlsEnabled(false);
-            Debug.Log("Question Shown");
+            Debug.Log("Zombie is hitting the car!");
         }
     }
 
@@ -70,11 +83,11 @@ public class ZombieController : MonoBehaviour
 
     public void OnIncorrectAnswer()
     {
-        HealthManager.Instance.LoseLife();  
+        HealthManager.Instance.LoseLife();
 
         if (HealthManager.Instance.GetCurrentLives() <= 0)
         {
-            SceneManager.LoadScene("LevelLost");  
+            SceneManager.LoadScene("LevelLost");
         }
         else
         {
