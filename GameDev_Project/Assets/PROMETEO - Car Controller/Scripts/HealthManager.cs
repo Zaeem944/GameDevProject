@@ -34,6 +34,21 @@ public class HealthManager : MonoBehaviour
         }
     }
 
+    public void GainLife()
+    {
+        lives++;
+        if (lives > 5) lives = 5;
+
+        if (uiManager != null)
+        {
+            uiManager.UpdateLivesDisplay();
+        }
+        else
+        {
+            Debug.LogWarning("UIManager instance is not set in HealthManager.");
+        }
+    }
+
     public int GetCurrentLives()
     {
         return lives;
