@@ -7,6 +7,7 @@ public class LevelManager : MonoBehaviour
 
     public void LoadSceneByName()
     {
+        HealthManager.Instance.ResetLives();
         if (!string.IsNullOrEmpty(sceneName))
         {
             SceneManager.LoadScene(sceneName);

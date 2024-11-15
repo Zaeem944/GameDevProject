@@ -11,42 +11,33 @@ public class HealthManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); 
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Destroy(gameObject); 
+            Destroy(gameObject);
         }
+
+        lives = 3;
+    }
+
+    private void OnApplicationQuit()
+    {
+        PlayerPrefs.SetInt("Lives", lives);
     }
 
     public void LoseLife()
     {
         lives--;
         if (lives < 0) lives = 0;
-
-        if (uiManager != null)
-        {
-            uiManager.UpdateLivesDisplay(); 
-        }
-        else
-        {
-            Debug.LogWarning("UIManager instance is not set in HealthManager.");
-        }
+        UpdateLivesDisplay();
     }
 
     public void GainLife()
     {
         lives++;
         if (lives > 5) lives = 5;
-
-        if (uiManager != null)
-        {
-            uiManager.UpdateLivesDisplay();
-        }
-        else
-        {
-            Debug.LogWarning("UIManager instance is not set in HealthManager.");
-        }
+        UpdateLivesDisplay();
     }
 
     public int GetCurrentLives()
@@ -57,5 +48,19 @@ public class HealthManager : MonoBehaviour
     public void ResetLives()
     {
         lives = 3;
+        UpdateLivesDisplay();
+    }
+
+    private void UpdateLivesDisplay()
+    {
+        if (uiManager != null)
+        {
+            Debug.Log("Lives are:" + lives);
+            uiManager.UpdateLivesDisplay();
+        }
+        else
+        {
+            Debug.LogWarning("UIManager instance is not set in HealthManager.");
+        }
     }
 }

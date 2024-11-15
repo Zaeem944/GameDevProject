@@ -74,6 +74,8 @@ public class PrometeoCarController : MonoBehaviour
     private float localVelocityZ;
     private bool deceleratingCar;
     private bool touchControlsSetup = false;
+    public bool IsLeft = true;
+    public bool IsRight = false;
 
     void Start()
     {
@@ -176,21 +178,25 @@ public class PrometeoCarController : MonoBehaviour
 
     private void TryJumpLeft()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown)
+        if (Time.time - lastJumpTime >= jumpCooldown && !IsLeft)
         {
             Vector3 jumpPosition = transform.position - transform.right * jumpDistance;
             transform.position = jumpPosition;
             lastJumpTime = Time.time;
+            IsLeft = true;
+            IsRight = false;
         }
     }
 
     private void TryJumpRight()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown)
+        if (Time.time - lastJumpTime >= jumpCooldown && !IsRight)
         {
             Vector3 jumpPosition = transform.position + transform.right * jumpDistance;
             transform.position = jumpPosition;
             lastJumpTime = Time.time;
+            IsRight = true;
+            IsLeft = false;
         }
     }
 
