@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class AudioManager : MonoBehaviour
+public class audioManager : MonoBehaviour
 {
-    public static AudioManager Instance { get; private set; }
+    public static audioManager Instance { get; private set; }
 
     [Header("Audio Clips")]
     [SerializeField] private AudioClip firstAudio;

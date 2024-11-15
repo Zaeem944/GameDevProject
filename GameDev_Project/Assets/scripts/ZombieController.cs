@@ -10,8 +10,6 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private PrometeoCarController carController;
     [SerializeField] private int zombieGroanSoundIndex = 0;
 
-    // Remove this line as we don't need to reference the AudioManager GameObject
-    // [SerializeField] private GameObject AudioManager;
 
     private Renderer zombieRenderer;
     private bool isNearCar = false;
@@ -84,7 +82,7 @@ public class ZombieController : MonoBehaviour
         if (!hasCollided)
         {
             // Use PlayFirstAudio instead of PlaySoundEffect
-            AudioManager.Instance.PlayFirstAudio();
+            audioManager.Instance.PlayFirstAudio();
 
             hasCollided = true;
             questionPanel.SetActive(true);
@@ -97,7 +95,7 @@ public class ZombieController : MonoBehaviour
     public void OnCorrectAnswer()
     {
         // Use PlaySecondAudio instead of PlaySoundEffect
-        AudioManager.Instance.PlaySecondAudio();
+        audioManager.Instance.PlaySecondAudio();
 
         questionPanel.SetActive(false);
         carController.SetCarControlsEnabled(true);
@@ -107,7 +105,7 @@ public class ZombieController : MonoBehaviour
 
     public void OnIncorrectAnswer()
     {
-        AudioManager.Instance.PlayThirdAudio();
+        audioManager.Instance.PlayThirdAudio();
         HealthManager.Instance.LoseLife();
         if (HealthManager.Instance.GetCurrentLives() <= 0)
         {
