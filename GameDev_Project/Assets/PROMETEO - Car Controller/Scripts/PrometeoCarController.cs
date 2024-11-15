@@ -15,11 +15,9 @@ public class PrometeoCarController : MonoBehaviour
 
     // New jump settings
     [Header("SIDE JUMP SETTINGS")]
-    public float jumpDistance = 200f;
+    public float jumpDistance = 3f;
     public float jumpCooldown = 0.5f;
     private float lastJumpTime = 0f;
-
-
 
     // WHEELS
     public GameObject frontLeftMesh;
@@ -76,8 +74,6 @@ public class PrometeoCarController : MonoBehaviour
     private float localVelocityZ;
     private bool deceleratingCar;
     private bool touchControlsSetup = false;
-    private bool IsLeft = true;
-    private bool IsRight = false;
 
     void Start()
     {
@@ -143,6 +139,19 @@ public class PrometeoCarController : MonoBehaviour
 
         HandleInput();
         AnimateWheelMeshes();
+        MoveForward();
+    }
+    public void MoveForward()
+    {
+        if (!isControlEnabled) return;
+
+        float targetSpeed = maxSpeed;
+        float motorTorque = accelerationMultiplier * 50f;
+
+        frontLeftCollider.motorTorque = motorTorque;
+        frontRightCollider.motorTorque = motorTorque;
+        rearLeftCollider.motorTorque = motorTorque;
+        rearRightCollider.motorTorque = motorTorque;
     }
 
     private void HandleInput()
@@ -151,83 +160,37 @@ public class PrometeoCarController : MonoBehaviour
 
         if (useTouchControls && touchControlsSetup)
         {
-            if (throttlePTI.buttonPressed)
-            {
-                CancelInvoke(nameof(DecelerateCar));
-                deceleratingCar = false;
-                GoForward();
-            }
-            if (reversePTI.buttonPressed)
-            {
-                CancelInvoke(nameof(DecelerateCar));
-                deceleratingCar = false;
-                GoReverse();
-            }
             if (turnLeftPTI.buttonPressed)
                 TryJumpLeft();
             if (turnRightPTI.buttonPressed)
                 TryJumpRight();
-            if (!throttlePTI.buttonPressed && !reversePTI.buttonPressed)
-                ThrottleOff();
-            if (!reversePTI.buttonPressed && !throttlePTI.buttonPressed && !deceleratingCar)
-            {
-                InvokeRepeating(nameof(DecelerateCar), 0f, 0.1f);
-                deceleratingCar = true;
-            }
         }
         else
         {
-            if (Input.GetKey(KeyCode.W))
-            {
-                CancelInvoke(nameof(DecelerateCar));
-                deceleratingCar = false;
-                GoForward();
-            }
-            if (Input.GetKey(KeyCode.S))
-            {
-                CancelInvoke(nameof(DecelerateCar));
-                deceleratingCar = false;
-                GoReverse();
-            }
             if (Input.GetKey(KeyCode.A))
                 TryJumpLeft();
             if (Input.GetKey(KeyCode.D))
                 TryJumpRight();
-            if (!Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.W))
-                ThrottleOff();
-            if (!Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.W) && !deceleratingCar)
-            {
-                InvokeRepeating(nameof(DecelerateCar), 0f, 0.1f);
-                deceleratingCar = true;
-            }
         }
     }
 
     private void TryJumpLeft()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown && !IsLeft)
+        if (Time.time - lastJumpTime >= jumpCooldown)
         {
             Vector3 jumpPosition = transform.position - transform.right * jumpDistance;
             transform.position = jumpPosition;
             lastJumpTime = Time.time;
-
-            // Update the flags
-            IsLeft = true;
-            IsRight = false;
         }
     }
 
     private void TryJumpRight()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown && !IsRight)
+        if (Time.time - lastJumpTime >= jumpCooldown)
         {
             Vector3 jumpPosition = transform.position + transform.right * jumpDistance;
             transform.position = jumpPosition;
             lastJumpTime = Time.time;
-
-            // Update the flags
-            IsRight = true;
-            IsLeft = false;
         }
     }
 
@@ -246,49 +209,7 @@ public class PrometeoCarController : MonoBehaviour
         mesh.transform.rotation = rotation;
     }
 
-    public void GoForward()
-    {
-        if (!isControlEnabled) return;
 
-        throttleAxis += Time.deltaTime * 3f;
-        throttleAxis = Mathf.Clamp(throttleAxis, 0f, 1f);
-
-        if (localVelocityZ < -1f)
-            ApplyBrakes();
-        else
-        {
-            if (Mathf.RoundToInt(carSpeed) < maxSpeed)
-            {
-                ReleaseBrakes();
-                float motorTorque = accelerationMultiplier * 50f * throttleAxis;
-                ApplyMotorTorque(motorTorque);
-            }
-            else
-                ApplyMotorTorque(0f);
-        }
-    }
-
-    public void GoReverse()
-    {
-        if (!isControlEnabled) return;
-
-        throttleAxis -= Time.deltaTime * 3f;
-        throttleAxis = Mathf.Clamp(throttleAxis, -1f, 0f);
-
-        if (localVelocityZ > 1f)
-            ApplyBrakes();
-        else
-        {
-            if (Mathf.Abs(Mathf.RoundToInt(carSpeed)) < maxReverseSpeed)
-            {
-                ReleaseBrakes();
-                float motorTorque = accelerationMultiplier * 50f * throttleAxis;
-                ApplyMotorTorque(motorTorque);
-            }
-            else
-                ApplyMotorTorque(0f);
-        }
-    }
 
     public void ThrottleOff()
     {
@@ -354,22 +275,17 @@ public class PrometeoCarController : MonoBehaviour
 
         if (!enabled)
         {
-            // Reset all movement inputs
             throttleInput = 0;
             throttleAxis = 0;
             currentSpeed = 0;
 
-            // Stop all movement
             carRigidbody.velocity = Vector3.zero;
             carRigidbody.angularVelocity = Vector3.zero;
 
-            // Apply brake force to all wheels
             ApplyBrakes();
 
-            // Stop any ongoing deceleration
             CancelInvoke(nameof(DecelerateCar));
 
-            // Stop the engine sound
             if (useSounds && carEngineSound != null)
             {
                 carEngineSound.pitch = initialCarEngineSoundPitch;
@@ -377,7 +293,6 @@ public class PrometeoCarController : MonoBehaviour
         }
         else
         {
-            // Release brakes when controls are re-enabled
             ReleaseBrakes();
         }
     }
