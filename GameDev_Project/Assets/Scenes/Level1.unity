@@ -3413,7 +3413,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -235, y: 220}
+  m_AnchoredPosition: {x: -235, y: 150}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &486229616
@@ -3893,7 +3893,6 @@ MonoBehaviour:
   activationDistance: 100
   moveSpeed: 2
   carController: {fileID: 2003310527}
-  zombieGroanSoundIndex: 0
 --- !u!4 &555446163 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4533943726500818, guid: 2224b63330275e5478ef024b2913f937,
@@ -11247,7 +11246,6 @@ MonoBehaviour:
   activationDistance: 100
   moveSpeed: 2
   carController: {fileID: 2003310527}
-  zombieGroanSoundIndex: 0
 --- !u!1 &1696090456
 GameObject:
   m_ObjectHideFlags: 0
@@ -11434,7 +11432,6 @@ MonoBehaviour:
   activationDistance: 100
   moveSpeed: 2
   carController: {fileID: 2003310527}
-  zombieGroanSoundIndex: 0
 --- !u!1001 &1724376343
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13778,6 +13775,7 @@ MonoBehaviour:
   firstAudio: {fileID: 8300000, guid: ab72544282d00ed4ea69d847e21b548f, type: 3}
   secondAudio: {fileID: 8300000, guid: 68819912efd8ec642a222d0bb16bad67, type: 3}
   thirdAudio: {fileID: 8300000, guid: a3cc71b010ea4ea4db50128415116217, type: 3}
+  FourthAudio: {fileID: 8300000, guid: 3e9544f360bc00c418fd8309d6229764, type: 3}
 --- !u!4 &1956703808
 Transform:
   m_ObjectHideFlags: 0

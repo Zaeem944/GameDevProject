@@ -4,8 +4,6 @@ using UnityEngine.UI;
 
 public class PrometeoCarController : MonoBehaviour
 {
-    // CAR SETUP
-    [Header("CAR SETUP")]
     [Range(20, 190)] public int maxSpeed = 90;
     [Range(10, 120)] public int maxReverseSpeed = 45;
     [Range(1, 10)] public int accelerationMultiplier = 2;
@@ -13,13 +11,12 @@ public class PrometeoCarController : MonoBehaviour
     [Range(1, 10)] public int decelerationMultiplier = 2;
     public Vector3 bodyMassCenter;
 
-    // New jump settings
-    [Header("SIDE JUMP SETTINGS")]
     public float jumpDistance = 3f;
     public float jumpCooldown = 0.5f;
     private float lastJumpTime = 0f;
+    private bool isJumping = false;
+    private Vector3 jumpTarget;
 
-    // WHEELS
     public GameObject frontLeftMesh;
     public WheelCollider frontLeftCollider;
     public GameObject frontRightMesh;
@@ -29,24 +26,13 @@ public class PrometeoCarController : MonoBehaviour
     public GameObject rearRightMesh;
     public WheelCollider rearRightCollider;
 
-    // EFFECTS
-    public bool useEffects = false;
-    public ParticleSystem RLWParticleSystem;
-    public ParticleSystem RRWParticleSystem;
-    public TrailRenderer RLWTireSkid;
-    public TrailRenderer RRWTireSkid;
 
-    // UI
-    public bool useUI = false;
-    public Text carSpeedText;
-
-    // SOUNDS
+ 
     public bool useSounds = false;
     public AudioSource carEngineSound;
     public AudioSource tireScreechSound;
     private float initialCarEngineSoundPitch;
 
-    // CONTROLS
     public bool useTouchControls = false;
     public GameObject throttleButton;
     public GameObject reverseButton;
@@ -54,26 +40,14 @@ public class PrometeoCarController : MonoBehaviour
     public GameObject turnLeftButton;
     public GameObject handbrakeButton;
 
-    private PrometeoTouchInput throttlePTI;
-    private PrometeoTouchInput reversePTI;
-    private PrometeoTouchInput turnRightPTI;
-    private PrometeoTouchInput turnLeftPTI;
-    private PrometeoTouchInput handbrakePTI;
-
-    // Control state
     private bool isControlEnabled = true;
-    private float throttleInput = 0;
-    private float currentSpeed = 0;
 
-    // CAR DATA
     [HideInInspector] public float carSpeed;
 
-    // PRIVATE VARIABLES
     private Rigidbody carRigidbody;
     private float throttleAxis;
     private float localVelocityZ;
     private bool deceleratingCar;
-    private bool touchControlsSetup = false;
     public bool IsLeft = true;
     public bool IsRight = false;
 
@@ -82,54 +56,6 @@ public class PrometeoCarController : MonoBehaviour
         carRigidbody = GetComponent<Rigidbody>();
         carRigidbody.centerOfMass = bodyMassCenter;
         carRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-
-        if (carEngineSound != null)
-            initialCarEngineSoundPitch = carEngineSound.pitch;
-
-        if (useUI)
-            InvokeRepeating(nameof(UpdateCarSpeedUI), 0f, 0.1f);
-        else if (carSpeedText != null)
-            carSpeedText.text = "0";
-
-        if (useSounds)
-            InvokeRepeating(nameof(UpdateCarSounds), 0f, 0.1f);
-        else
-        {
-            carEngineSound?.Stop();
-            tireScreechSound?.Stop();
-        }
-
-        if (!useEffects)
-        {
-            RLWParticleSystem?.Stop();
-            RRWParticleSystem?.Stop();
-            if (RLWTireSkid != null) RLWTireSkid.emitting = false;
-            if (RRWTireSkid != null) RRWTireSkid.emitting = false;
-        }
-
-        SetupTouchControls();
-    }
-
-    private void SetupTouchControls()
-    {
-        if (useTouchControls)
-        {
-            if (throttleButton != null && reverseButton != null &&
-                turnRightButton != null && turnLeftButton != null &&
-                handbrakeButton != null)
-            {
-                throttlePTI = throttleButton.GetComponent<PrometeoTouchInput>();
-                reversePTI = reverseButton.GetComponent<PrometeoTouchInput>();
-                turnRightPTI = turnRightButton.GetComponent<PrometeoTouchInput>();
-                turnLeftPTI = turnLeftButton.GetComponent<PrometeoTouchInput>();
-                handbrakePTI = handbrakeButton.GetComponent<PrometeoTouchInput>();
-                touchControlsSetup = true;
-            }
-            else
-            {
-                Debug.LogWarning("Touch controls are not completely set up.");
-            }
-        }
     }
 
     void Update()
@@ -140,8 +66,12 @@ public class PrometeoCarController : MonoBehaviour
         localVelocityZ = transform.InverseTransformDirection(carRigidbody.velocity).z;
 
         HandleInput();
-        AnimateWheelMeshes();
         MoveForward();
+
+        if (isJumping)
+        {
+            SmoothJump();
+        }
     }
     public void MoveForward()
     {
@@ -156,32 +86,32 @@ public class PrometeoCarController : MonoBehaviour
         rearRightCollider.motorTorque = motorTorque;
     }
 
+    private void SmoothJump()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, jumpTarget, Time.deltaTime * jumpDistance * 5f);
+        if (Vector3.Distance(transform.position, jumpTarget) < 0.01f)
+        {
+            transform.position = jumpTarget; 
+            isJumping = false; 
+        }
+    }
+
     private void HandleInput()
     {
         if (!isControlEnabled) return;
 
-        if (useTouchControls && touchControlsSetup)
-        {
-            if (turnLeftPTI.buttonPressed)
-                TryJumpLeft();
-            if (turnRightPTI.buttonPressed)
-                TryJumpRight();
-        }
-        else
-        {
-            if (Input.GetKey(KeyCode.A))
-                TryJumpLeft();
-            if (Input.GetKey(KeyCode.D))
-                TryJumpRight();
-        }
+        if (Input.GetKey(KeyCode.A))
+            TryJumpLeft();
+        if (Input.GetKey(KeyCode.D))
+            TryJumpRight();
     }
 
     private void TryJumpLeft()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown && !IsLeft)
+        if (Time.time - lastJumpTime >= jumpCooldown && !IsLeft && !isJumping)
         {
-            Vector3 jumpPosition = transform.position - transform.right * jumpDistance;
-            transform.position = jumpPosition;
+            jumpTarget = transform.position - transform.right * jumpDistance;
+            isJumping = true; // Start the jump
             lastJumpTime = Time.time;
             IsLeft = true;
             IsRight = false;
@@ -190,29 +120,14 @@ public class PrometeoCarController : MonoBehaviour
 
     private void TryJumpRight()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown && !IsRight)
+        if (Time.time - lastJumpTime >= jumpCooldown && !IsRight && !isJumping)
         {
-            Vector3 jumpPosition = transform.position + transform.right * jumpDistance;
-            transform.position = jumpPosition;
+            jumpTarget = transform.position + transform.right * jumpDistance;
+            isJumping = true; // Start the jump
             lastJumpTime = Time.time;
             IsRight = true;
             IsLeft = false;
         }
-    }
-
-    private void AnimateWheelMeshes()
-    {
-        UpdateWheelPose(frontLeftCollider, frontLeftMesh);
-        UpdateWheelPose(frontRightCollider, frontRightMesh);
-        UpdateWheelPose(rearLeftCollider, rearLeftMesh);
-        UpdateWheelPose(rearRightCollider, rearRightMesh);
-    }
-
-    private void UpdateWheelPose(WheelCollider collider, GameObject mesh)
-    {
-        collider.GetWorldPose(out Vector3 position, out Quaternion rotation);
-        mesh.transform.position = position;
-        mesh.transform.rotation = rotation;
     }
 
 
@@ -261,29 +176,13 @@ public class PrometeoCarController : MonoBehaviour
         rearRightCollider.motorTorque = torque;
     }
 
-    private void UpdateCarSpeedUI()
-    {
-        if (useUI && carSpeedText != null)
-            carSpeedText.text = Mathf.RoundToInt(Mathf.Abs(carSpeed)).ToString();
-    }
-
-    private void UpdateCarSounds()
-    {
-        if (useSounds && carEngineSound != null)
-        {
-            carEngineSound.pitch = initialCarEngineSoundPitch + (Mathf.Abs(carRigidbody.velocity.magnitude) / 25f);
-        }
-    }
-
     public void SetCarControlsEnabled(bool enabled)
     {
         isControlEnabled = enabled;
 
         if (!enabled)
         {
-            throttleInput = 0;
             throttleAxis = 0;
-            currentSpeed = 0;
 
             carRigidbody.velocity = Vector3.zero;
             carRigidbody.angularVelocity = Vector3.zero;

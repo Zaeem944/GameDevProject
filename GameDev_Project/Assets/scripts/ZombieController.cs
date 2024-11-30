@@ -8,7 +8,6 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private float activationDistance = 100f;
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private PrometeoCarController carController;
-    [SerializeField] private int zombieGroanSoundIndex = 0;
 
 
     private Renderer zombieRenderer;
@@ -52,6 +51,7 @@ public class ZombieController : MonoBehaviour
                     isNearCar = true;
                     zombieRenderer.enabled = true;
                     Debug.Log("Zombie showed");
+                    audioManager.Instance.PlayFourthAudio();
                 }
                 MoveTowardsCar();
             }
@@ -81,7 +81,6 @@ public class ZombieController : MonoBehaviour
     {
         if (!hasCollided)
         {
-            // Use PlayFirstAudio instead of PlaySoundEffect
             audioManager.Instance.PlayFirstAudio();
 
             hasCollided = true;
@@ -94,7 +93,6 @@ public class ZombieController : MonoBehaviour
 
     public void OnCorrectAnswer()
     {
-        // Use PlaySecondAudio instead of PlaySoundEffect
         audioManager.Instance.PlaySecondAudio();
 
         questionPanel.SetActive(false);

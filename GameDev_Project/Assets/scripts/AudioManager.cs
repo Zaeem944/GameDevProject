@@ -8,12 +8,12 @@ public class audioManager : MonoBehaviour
     [SerializeField] private AudioClip firstAudio;
     [SerializeField] private AudioClip secondAudio;
     [SerializeField] private AudioClip thirdAudio;
+    [SerializeField] private AudioClip FourthAudio;
 
     private AudioSource audioSource;
 
     private void Awake()
     {
-        // Simple singleton setup
         if (Instance == null)
         {
             Instance = this;
@@ -25,7 +25,6 @@ public class audioManager : MonoBehaviour
             return;
         }
 
-        // Get or add AudioSource component
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
@@ -33,7 +32,6 @@ public class audioManager : MonoBehaviour
         }
     }
 
-    // Play the first audio clip
     public void PlayFirstAudio()
     {
         if (firstAudio != null)
@@ -46,7 +44,6 @@ public class audioManager : MonoBehaviour
         }
     }
 
-    // Play the second audio clip
     public void PlaySecondAudio()
     {
         if (secondAudio != null)
@@ -67,6 +64,18 @@ public class audioManager : MonoBehaviour
         else
         {
             Debug.LogWarning("Third audio clip is not assigned!");
+        }
+    }
+
+    public void PlayFourthAudio()
+    {
+        if (secondAudio != null)
+        {
+            audioSource.PlayOneShot(FourthAudio);
+        }
+        else
+        {
+            Debug.LogWarning("Fourth audio clip is not assigned!");
         }
     }
 }
