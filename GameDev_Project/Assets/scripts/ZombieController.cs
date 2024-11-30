@@ -8,7 +8,7 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private float activationDistance = 100f;
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private PrometeoCarController carController;
-
+    [SerializeField] private TimerController timerController; // Reference to TimerController
 
     private Renderer zombieRenderer;
     private bool isNearCar = false;
@@ -34,7 +34,13 @@ public class ZombieController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Renderer not found on Zombie 1.");
+            Debug.LogWarning("Renderer not found on Zombie.");
+        }
+
+        // Subscribe to timer event
+        if (timerController != null)
+        {
+            timerController.OnTimerEnd += HandleTimerEnd;
         }
     }
 
@@ -88,12 +94,24 @@ public class ZombieController : MonoBehaviour
             carController.SetCarControlsEnabled(false);
             Debug.Log("Question Shown");
             parentTransform.LookAt(car.transform);
+
+            // Start the timer
+            if (timerController != null)
+            {
+                timerController.ResetTimer(10f);
+            }
         }
     }
 
     public void OnCorrectAnswer()
     {
         audioManager.Instance.PlaySecondAudio();
+
+        // Stop the timer only for correct answers
+        if (timerController != null)
+        {
+            timerController.StopTimer();
+        }
 
         questionPanel.SetActive(false);
         carController.SetCarControlsEnabled(true);
@@ -105,6 +123,8 @@ public class ZombieController : MonoBehaviour
     {
         audioManager.Instance.PlayThirdAudio();
         HealthManager.Instance.LoseLife();
+
+        // No stopping of the timer here
         if (HealthManager.Instance.GetCurrentLives() <= 0)
         {
             SceneManager.LoadScene("LevelLost");
@@ -112,6 +132,24 @@ public class ZombieController : MonoBehaviour
         else
         {
             Debug.Log("Incorrect answer. Lives left: " + HealthManager.Instance.GetCurrentLives());
+        }
+    }
+
+    private void HandleTimerEnd()
+    {
+        if (hasCollided)
+        {
+            Debug.Log("Time's up! Level lost.");
+            SceneManager.LoadScene("LevelLost");
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Unsubscribe from timer event
+        if (timerController != null)
+        {
+            timerController.OnTimerEnd -= HandleTimerEnd;
         }
     }
 }
