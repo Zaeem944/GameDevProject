@@ -4,18 +4,30 @@ using UnityEngine.UI;
 
 public class PrometeoCarController : MonoBehaviour
 {
-    [Range(20, 190)] public int maxSpeed = 90;
+    [Range(20, 190)] public int maxSpeed = 190;
     [Range(10, 120)] public int maxReverseSpeed = 45;
-    [Range(1, 10)] public int accelerationMultiplier = 2;
+    [Range(1, 10)] public int accelerationMultiplier = 40;
     [Range(100, 600)] public int brakeForce = 350;
     [Range(1, 10)] public int decelerationMultiplier = 2;
     public Vector3 bodyMassCenter;
 
     public float jumpDistance = 3f;
     public float jumpCooldown = 0.5f;
+
     private float lastJumpTime = 0f;
     private bool isJumping = false;
     private Vector3 jumpTarget;
+    private Vector3 jumpStartPos;
+    private Quaternion jumpStartRot;
+    private float jumpTimeElapsed = 0f;
+
+    // Slightly increase duration for smoother transition
+    [SerializeField] private float jumpDuration = 0.3f;
+
+    // Increase turn angle for a more pronounced steering look
+    private float turnAngle = 20f;
+
+    private int jumpDirection = 0; // -1 for left, +1 for right
 
     public GameObject frontLeftMesh;
     public WheelCollider frontLeftCollider;
@@ -26,8 +38,6 @@ public class PrometeoCarController : MonoBehaviour
     public GameObject rearRightMesh;
     public WheelCollider rearRightCollider;
 
-
- 
     public bool useSounds = false;
     public AudioSource carEngineSound;
     public AudioSource tireScreechSound;
@@ -48,8 +58,7 @@ public class PrometeoCarController : MonoBehaviour
     private float throttleAxis;
     private float localVelocityZ;
     private bool deceleratingCar;
-    public bool IsLeft = true;
-    public bool IsRight = false;
+    public int posState = 2; // 1=left, 2=middle, 3=right
 
     void Start()
     {
@@ -73,12 +82,13 @@ public class PrometeoCarController : MonoBehaviour
             SmoothJump();
         }
     }
+
     public void MoveForward()
     {
         if (!isControlEnabled) return;
 
         float targetSpeed = maxSpeed;
-        float motorTorque = accelerationMultiplier * 50f;
+        float motorTorque = accelerationMultiplier * 5000f;
 
         frontLeftCollider.motorTorque = motorTorque;
         frontRightCollider.motorTorque = motorTorque;
@@ -88,11 +98,31 @@ public class PrometeoCarController : MonoBehaviour
 
     private void SmoothJump()
     {
-        transform.position = Vector3.MoveTowards(transform.position, jumpTarget, Time.deltaTime * jumpDistance * 5f);
-        if (Vector3.Distance(transform.position, jumpTarget) < 0.01f)
+        jumpTimeElapsed += Time.deltaTime;
+        float t = jumpTimeElapsed / jumpDuration;
+        t = Mathf.Clamp01(t);
+
+        // Position: Add a slight forward arc to simulate a real turn
+        // Sine curve: peaks at mid-transition, giving a slight bulge forward
+        float arcOffset = 0.5f; // Adjust this for more or less forward bulge
+        Vector3 forwardOffset = transform.forward * arcOffset * Mathf.Sin(t * Mathf.PI);
+
+        Vector3 newPosition = Vector3.Lerp(jumpStartPos, jumpTarget, t) + forwardOffset;
+        transform.position = newPosition;
+
+        // Rotation: Use a sine curve to simulate steering into the turn:
+        // At t=0 and t=1, angle=0 (car straight)
+        // At t=0.5, angle=max turn angle
+        float steeringCurve = Mathf.Sin(t * Mathf.PI);
+        float currentAngle = steeringCurve * turnAngle * jumpDirection;
+
+        transform.rotation = jumpStartRot * Quaternion.Euler(0f, currentAngle, 0f);
+
+        if (t >= 1f)
         {
-            transform.position = jumpTarget; 
-            isJumping = false; 
+            // Jump complete
+            transform.position = jumpTarget;
+            isJumping = false;
         }
     }
 
@@ -108,29 +138,35 @@ public class PrometeoCarController : MonoBehaviour
 
     private void TryJumpLeft()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown && !IsLeft && !isJumping)
+        if (Time.time - lastJumpTime >= jumpCooldown && posState != 1 && !isJumping)
         {
+            jumpDirection = -1;
             jumpTarget = transform.position - transform.right * jumpDistance;
-            isJumping = true; // Start the jump
-            lastJumpTime = Time.time;
-            IsLeft = true;
-            IsRight = false;
+            StartJump();
+            posState -= 1;
         }
     }
 
     private void TryJumpRight()
     {
-        if (Time.time - lastJumpTime >= jumpCooldown && !IsRight && !isJumping)
+        if (Time.time - lastJumpTime >= jumpCooldown && posState != 3 && !isJumping)
         {
+            jumpDirection = 1;
             jumpTarget = transform.position + transform.right * jumpDistance;
-            isJumping = true; // Start the jump
-            lastJumpTime = Time.time;
-            IsRight = true;
-            IsLeft = false;
+            StartJump();
+            posState += 1;
         }
     }
 
+    private void StartJump()
+    {
+        isJumping = true;
+        lastJumpTime = Time.time;
+        jumpTimeElapsed = 0f;
 
+        jumpStartPos = transform.position;
+        jumpStartRot = transform.rotation;
+    }
 
     public void ThrottleOff()
     {
@@ -183,12 +219,10 @@ public class PrometeoCarController : MonoBehaviour
         if (!enabled)
         {
             throttleAxis = 0;
-
             carRigidbody.velocity = Vector3.zero;
             carRigidbody.angularVelocity = Vector3.zero;
 
             ApplyBrakes();
-
             CancelInvoke(nameof(DecelerateCar));
 
             if (useSounds && carEngineSound != null)
