@@ -6,12 +6,12 @@ public class PrometeoCarController : MonoBehaviour
 {
     [Range(20, 190)] public int maxSpeed = 190;
     [Range(10, 120)] public int maxReverseSpeed = 45;
-    [Range(1, 10)] public int accelerationMultiplier = 40;
+    [Range(1, 10)] public int accelerationMultiplier = 5;
     [Range(100, 600)] public int brakeForce = 350;
-    [Range(1, 10)] public int decelerationMultiplier = 2;
+    [Range(1, 10)] public int decelerationMultiplier = 5;
     public Vector3 bodyMassCenter;
 
-    public float jumpDistance = 3f;
+    public float jumpDistance = 8.77f;
     public float jumpCooldown = 0.5f;
 
     private float lastJumpTime = 0f;
@@ -88,7 +88,7 @@ public class PrometeoCarController : MonoBehaviour
         if (!isControlEnabled) return;
 
         float targetSpeed = maxSpeed;
-        float motorTorque = accelerationMultiplier * 5000f;
+        float motorTorque = accelerationMultiplier * 50f;
 
         frontLeftCollider.motorTorque = motorTorque;
         frontRightCollider.motorTorque = motorTorque;
