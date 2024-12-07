@@ -9,6 +9,7 @@ public class ZombieController : MonoBehaviour
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private PrometeoCarController carController;
     [SerializeField] private TimerController timerController; // Reference to TimerController
+    [SerializeField] private string lostSceneName;
 
     private Renderer zombieRenderer;
     private bool isNearCar = false;
@@ -127,7 +128,7 @@ public class ZombieController : MonoBehaviour
         // No stopping of the timer here
         if (HealthManager.Instance.GetCurrentLives() <= 0)
         {
-            SceneManager.LoadScene("LevelLost");
+            SceneManager.LoadScene(lostSceneName);
         }
         else
         {
@@ -140,7 +141,7 @@ public class ZombieController : MonoBehaviour
         if (hasCollided)
         {
             Debug.Log("Time's up! Level lost.");
-            SceneManager.LoadScene("LevelLost");
+            SceneManager.LoadScene(lostSceneName);
         }
     }
 

@@ -207,7 +207,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 829960776}
         m_TargetAssemblyTypeName: LevelManager, Assembly-CSharp
-        m_MethodName: LoadSceneByName
+        m_MethodName: LoadDefaultScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -299,7 +299,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c28642804a88ef4496ffb9157994d35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneName: Level1
+  defaultSceneName: Level1
 --- !u!1 &888972519
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,14 +1,26 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI livesText;  
+    [SerializeField] private TextMeshProUGUI livesText;
+
+    private void Awake()
+    {
+        // Register this UIManager instance with the HealthManager
+        if (HealthManager.Instance != null)
+        {
+            HealthManager.Instance.uiManager = this;
+        }
+        else
+        {
+            Debug.LogWarning("HealthManager instance is not found.");
+        }
+    }
 
     private void Start()
     {
-        UpdateLivesDisplay(); 
+        UpdateLivesDisplay();
     }
 
     public void UpdateLivesDisplay()

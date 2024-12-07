@@ -4,7 +4,7 @@ public class HealthManager : MonoBehaviour
 {
     public static HealthManager Instance { get; private set; }
     private int lives = 3;
-    public UIManager uiManager;
+    public UIManager uiManager; // Ensure this is public or has a public setter
 
     private void Awake()
     {
@@ -16,6 +16,7 @@ public class HealthManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
         }
 
         lives = 3;

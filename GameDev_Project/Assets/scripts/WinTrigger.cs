@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class WinTrigger : MonoBehaviour
 {
@@ -7,7 +6,8 @@ public class WinTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-         SceneManager.LoadScene(winSceneName);
-         Debug.Log("Level won! Loading win scene.");
+            // Call LevelManager's method to load the win scene
+            LevelManager.Instance.LoadWinScene(winSceneName);
+            Debug.Log("Level won! Requested LevelManager to load win scene.");
     }
 }
