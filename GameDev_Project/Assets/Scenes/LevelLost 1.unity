@@ -1005,7 +1005,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c28642804a88ef4496ffb9157994d35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultSceneName: 
+  defaultSceneName: StartingUI
 --- !u!4 &1389170000
 Transform:
   m_ObjectHideFlags: 0
