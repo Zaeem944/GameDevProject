@@ -56,9 +56,6 @@ public class PizzaCollision : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Ensure that the collider is the player or relevant object
-        if (other.CompareTag("Player"))
-        {
             if (gameManager != null && gameManager.healthManager != null)
             {
                 int currentLives = gameManager.healthManager.GetCurrentLives();
@@ -72,15 +69,12 @@ public class PizzaCollision : MonoBehaviour
                     Debug.Log("Maximum lives reached. No additional lives granted.");
                 }
 
-                // Destroy the pizza object after collision
                 Destroy(gameObject);
             }
             else
             {
                 Debug.LogWarning("GameManager or HealthManager is not assigned. Cannot gain life.");
-                // Optionally, handle the case where managers are not found
                 Destroy(gameObject);
             }
-        }
     }
 }
