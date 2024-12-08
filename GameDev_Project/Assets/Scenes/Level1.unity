@@ -42753,6 +42753,9 @@ MonoBehaviour:
   thirdAudio: {fileID: 8300000, guid: a3cc71b010ea4ea4db50128415116217, type: 3}
   fourthAudio: {fileID: 8300000, guid: 3e9544f360bc00c418fd8309d6229764, type: 3}
   fifthAudio: {fileID: 0}
+  sixthAudio: {fileID: 0}
+  sfxAudioSource: {fileID: 0}
+  bgmAudioSource: {fileID: 0}
 --- !u!4 &1956703808
 Transform:
   m_ObjectHideFlags: 0
@@ -44507,6 +44510,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Drag
       value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5135156708204615449, guid: 79d0ca8b77e301442afdb49f102e8aed,
+        type: 3}
+      propertyPath: m_Mass
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: 5135156708204615449, guid: 79d0ca8b77e301442afdb49f102e8aed,
         type: 3}
