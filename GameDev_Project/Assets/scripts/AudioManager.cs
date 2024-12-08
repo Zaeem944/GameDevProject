@@ -7,6 +7,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip secondAudio;
     [SerializeField] private AudioClip thirdAudio;
     [SerializeField] private AudioClip fourthAudio;
+    [SerializeField] private AudioClip fifthAudio;
 
     private AudioSource audioSource;
 
@@ -80,6 +81,18 @@ public class AudioManager : MonoBehaviour
         else
         {
             Debug.LogWarning("AudioManager: Fourth audio clip is not assigned!");
+        }
+    }
+    public void PlayFifthAudio()
+    {
+        if (fifthAudio != null)
+        {
+            audioSource.PlayOneShot(fifthAudio);
+            Debug.Log("AudioManager: Playing fifth audio.");
+        }
+        else
+        {
+            Debug.LogWarning("AudioManager: Fifthh audio clip is not assigned!");
         }
     }
 }
