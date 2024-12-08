@@ -2,29 +2,23 @@ using UnityEngine;
 
 public class HealthManager : MonoBehaviour
 {
-    public static HealthManager Instance { get; private set; }
-    private int lives = 3;
-    public UIManager uiManager; // Ensure this is public or has a public setter
+    [SerializeField] private int lives = 3;
+    public UIManager uiManager; // Ensure this is assigned via Inspector
 
     private void Awake()
     {
-        if (Instance == null)
+        // Register with GameManager Singleton
+        if (GameManager.Instance != null)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            GameManager.Instance.RegisterHealthManager(this);
+            Debug.Log($"HealthManager: Registered with GameManager: {GameManager.Instance.gameObject.name}");
         }
         else
         {
-            Destroy(gameObject);
-            return;
+            Debug.LogError("HealthManager: GameManager Singleton instance not found.");
         }
 
-        lives = 3;
-    }
-
-    private void OnApplicationQuit()
-    {
-        PlayerPrefs.SetInt("Lives", lives);
+        UpdateLivesDisplay();
     }
 
     public void LoseLife()
@@ -32,6 +26,7 @@ public class HealthManager : MonoBehaviour
         lives--;
         if (lives < 0) lives = 0;
         UpdateLivesDisplay();
+        Debug.Log($"HealthManager: Life lost. Current lives: {lives}");
     }
 
     public void GainLife()
@@ -39,6 +34,7 @@ public class HealthManager : MonoBehaviour
         lives++;
         if (lives > 5) lives = 5;
         UpdateLivesDisplay();
+        Debug.Log($"HealthManager: Life gained. Current lives: {lives}");
     }
 
     public int GetCurrentLives()
@@ -50,18 +46,18 @@ public class HealthManager : MonoBehaviour
     {
         lives = 3;
         UpdateLivesDisplay();
+        Debug.Log("HealthManager: Lives reset to 3.");
     }
 
     private void UpdateLivesDisplay()
     {
         if (uiManager != null)
         {
-            Debug.Log("Lives are:" + lives);
             uiManager.UpdateLivesDisplay();
         }
         else
         {
-            Debug.LogWarning("UIManager instance is not set in HealthManager.");
+            Debug.LogWarning("HealthManager: UIManager instance is not set.");
         }
     }
 }

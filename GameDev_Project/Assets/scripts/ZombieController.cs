@@ -16,6 +16,8 @@ public class ZombieController : MonoBehaviour
     private Transform parentTransform;
     private bool hasCollided = false;
 
+    private GameManager gameManager;
+
     void Start()
     {
         parentTransform = transform.parent;
@@ -43,6 +45,29 @@ public class ZombieController : MonoBehaviour
         {
             timerController.OnTimerEnd += HandleTimerEnd;
         }
+        else
+        {
+            Debug.LogWarning("TimerController reference is not set.");
+        }
+
+        // Find GameManager
+        gameManager = FindObjectOfType<GameManager>();
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManager not found in the scene.");
+        }
+        else
+        {
+            Debug.Log($"GameManager found: {gameManager.gameObject.name}");
+            if (gameManager.audioManager != null)
+            {
+                Debug.Log("AudioManager is available in GameManager.");
+            }
+            else
+            {
+                Debug.LogWarning("AudioManager is not assigned in GameManager.");
+            }
+        }
     }
 
     void Update()
@@ -58,7 +83,22 @@ public class ZombieController : MonoBehaviour
                     isNearCar = true;
                     zombieRenderer.enabled = true;
                     Debug.Log("Zombie showed");
-                    audioManager.Instance.PlayFourthAudio();
+
+                    if (gameManager != null && gameManager.audioManager != null)
+                    {
+                        gameManager.audioManager.PlayFourthAudio();
+                    }
+                    else
+                    {
+                        if (gameManager == null)
+                        {
+                            Debug.LogError("GameManager instance is null.");
+                        }
+                        else if (gameManager.audioManager == null)
+                        {
+                            Debug.LogError("AudioManager instance is null in GameManager.");
+                        }
+                    }
                 }
                 MoveTowardsCar();
             }
@@ -88,7 +128,21 @@ public class ZombieController : MonoBehaviour
     {
         if (!hasCollided)
         {
-            audioManager.Instance.PlayFirstAudio();
+            if (gameManager != null && gameManager.audioManager != null)
+            {
+                gameManager.audioManager.PlayFirstAudio();
+            }
+            else
+            {
+                if (gameManager == null)
+                {
+                    Debug.LogError("GameManager instance is null.");
+                }
+                else if (gameManager.audioManager == null)
+                {
+                    Debug.LogError("AudioManager instance is null in GameManager.");
+                }
+            }
 
             hasCollided = true;
             questionPanel.SetActive(true);
@@ -100,18 +154,42 @@ public class ZombieController : MonoBehaviour
             if (timerController != null)
             {
                 timerController.ResetTimer(10f);
+                Debug.Log("Timer started for 10 seconds.");
+            }
+            else
+            {
+                Debug.LogWarning("TimerController reference is not set.");
             }
         }
     }
 
     public void OnCorrectAnswer()
     {
-        audioManager.Instance.PlaySecondAudio();
+        if (gameManager != null && gameManager.audioManager != null)
+        {
+            gameManager.audioManager.PlaySecondAudio();
+        }
+        else
+        {
+            if (gameManager == null)
+            {
+                Debug.LogError("GameManager instance is null.");
+            }
+            else if (gameManager.audioManager == null)
+            {
+                Debug.LogError("AudioManager instance is null in GameManager.");
+            }
+        }
 
         // Stop the timer only for correct answers
         if (timerController != null)
         {
             timerController.StopTimer();
+            Debug.Log("Timer stopped due to correct answer.");
+        }
+        else
+        {
+            Debug.LogWarning("TimerController reference is not set.");
         }
 
         questionPanel.SetActive(false);
@@ -122,17 +200,38 @@ public class ZombieController : MonoBehaviour
 
     public void OnIncorrectAnswer()
     {
-        audioManager.Instance.PlayThirdAudio();
-        HealthManager.Instance.LoseLife();
-
-        // No stopping of the timer here
-        if (HealthManager.Instance.GetCurrentLives() <= 0)
+        if (gameManager != null && gameManager.healthManager != null)
         {
-            SceneManager.LoadScene(lostSceneName);
+            gameManager.healthManager.LoseLife();
+            Debug.Log("Life lost due to incorrect answer.");
+
+            if (gameManager.healthManager.GetCurrentLives() <= 0)
+            {
+                if (gameManager.levelManager != null)
+                {
+                    Debug.Log("No lives left. Loading lost scene.");
+                    gameManager.levelManager.LoadScene(lostSceneName);
+                }
+                else
+                {
+                    Debug.LogError("LevelManager instance is null in GameManager.");
+                }
+            }
+            else
+            {
+                Debug.Log("Incorrect answer. Lives left: " + gameManager.healthManager.GetCurrentLives());
+            }
         }
         else
         {
-            Debug.Log("Incorrect answer. Lives left: " + HealthManager.Instance.GetCurrentLives());
+            if (gameManager == null)
+            {
+                Debug.LogError("GameManager instance is null.");
+            }
+            else if (gameManager.healthManager == null)
+            {
+                Debug.LogError("HealthManager instance is null in GameManager.");
+            }
         }
     }
 
@@ -141,7 +240,21 @@ public class ZombieController : MonoBehaviour
         if (hasCollided)
         {
             Debug.Log("Time's up! Level lost.");
-            SceneManager.LoadScene(lostSceneName);
+            if (gameManager != null && gameManager.levelManager != null)
+            {
+                gameManager.levelManager.LoadScene(lostSceneName);
+            }
+            else
+            {
+                if (gameManager == null)
+                {
+                    Debug.LogError("GameManager instance is null.");
+                }
+                else if (gameManager.levelManager == null)
+                {
+                    Debug.LogError("LevelManager instance is null in GameManager.");
+                }
+            }
         }
     }
 
@@ -151,6 +264,7 @@ public class ZombieController : MonoBehaviour
         if (timerController != null)
         {
             timerController.OnTimerEnd -= HandleTimerEnd;
+            Debug.Log("Unsubscribed from TimerController's OnTimerEnd event.");
         }
     }
 }

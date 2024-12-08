@@ -8,13 +8,15 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         // Register this UIManager instance with the HealthManager
-        if (HealthManager.Instance != null)
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        if (gameManager != null && gameManager.healthManager != null)
         {
-            HealthManager.Instance.uiManager = this;
+            gameManager.healthManager.uiManager = this;
+            Debug.Log("UIManager registered with HealthManager.");
         }
         else
         {
-            Debug.LogWarning("HealthManager instance is not found.");
+            Debug.LogWarning("GameManager or HealthManager instance is not found. UIManager cannot register.");
         }
     }
 
@@ -25,9 +27,10 @@ public class UIManager : MonoBehaviour
 
     public void UpdateLivesDisplay()
     {
-        if (HealthManager.Instance != null)
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        if (gameManager != null && gameManager.healthManager != null)
         {
-            livesText.text = "Lives: " + HealthManager.Instance.GetCurrentLives();
+            livesText.text = "Lives: " + gameManager.healthManager.GetCurrentLives();
         }
         else
         {

@@ -1,34 +1,33 @@
 using UnityEngine;
 
-public class audioManager : MonoBehaviour
+public class AudioManager : MonoBehaviour
 {
-    public static audioManager Instance { get; private set; }
-
     [Header("Audio Clips")]
     [SerializeField] private AudioClip firstAudio;
     [SerializeField] private AudioClip secondAudio;
     [SerializeField] private AudioClip thirdAudio;
-    [SerializeField] private AudioClip FourthAudio;
+    [SerializeField] private AudioClip fourthAudio;
 
     private AudioSource audioSource;
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
+            Debug.Log("AudioManager: AudioSource component added.");
+        }
+
+        // Register with GameManager Singleton
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RegisterAudioManager(this);
+            Debug.Log($"AudioManager: Registered with GameManager: {GameManager.Instance.gameObject.name}");
+        }
+        else
+        {
+            Debug.LogError("AudioManager: GameManager Singleton instance not found.");
         }
     }
 
@@ -37,10 +36,11 @@ public class audioManager : MonoBehaviour
         if (firstAudio != null)
         {
             audioSource.PlayOneShot(firstAudio);
+            Debug.Log("AudioManager: Playing first audio.");
         }
         else
         {
-            Debug.LogWarning("First audio clip is not assigned!");
+            Debug.LogWarning("AudioManager: First audio clip is not assigned!");
         }
     }
 
@@ -49,33 +49,37 @@ public class audioManager : MonoBehaviour
         if (secondAudio != null)
         {
             audioSource.PlayOneShot(secondAudio);
+            Debug.Log("AudioManager: Playing second audio.");
         }
         else
         {
-            Debug.LogWarning("Second audio clip is not assigned!");
+            Debug.LogWarning("AudioManager: Second audio clip is not assigned!");
         }
     }
+
     public void PlayThirdAudio()
     {
-        if (secondAudio != null)
+        if (thirdAudio != null)
         {
             audioSource.PlayOneShot(thirdAudio);
+            Debug.Log("AudioManager: Playing third audio.");
         }
         else
         {
-            Debug.LogWarning("Third audio clip is not assigned!");
+            Debug.LogWarning("AudioManager: Third audio clip is not assigned!");
         }
     }
 
     public void PlayFourthAudio()
     {
-        if (secondAudio != null)
+        if (fourthAudio != null)
         {
-            audioSource.PlayOneShot(FourthAudio);
+            audioSource.PlayOneShot(fourthAudio);
+            Debug.Log("AudioManager: Playing fourth audio.");
         }
         else
         {
-            Debug.LogWarning("Fourth audio clip is not assigned!");
+            Debug.LogWarning("AudioManager: Fourth audio clip is not assigned!");
         }
     }
 }

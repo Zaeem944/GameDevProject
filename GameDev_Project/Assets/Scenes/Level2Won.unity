@@ -230,7 +230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c28642804a88ef4496ffb9157994d35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneName: StartingUI
+  defaultSceneName: 
 --- !u!4 &637195594
 Transform:
   m_ObjectHideFlags: 0
@@ -539,7 +539,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Return to Main Menu
+  m_text: Next Level
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -972,6 +972,7 @@ GameObject:
   - component: {fileID: 1636788812}
   - component: {fileID: 1636788811}
   - component: {fileID: 1636788810}
+  - component: {fileID: 1636788813}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -1043,9 +1044,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 637195593}
-        m_TargetAssemblyTypeName: LevelManager, Assembly-CSharp
-        m_MethodName: LoadSceneByName
+      - m_Target: {fileID: 1636788813}
+        m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
+        m_MethodName: LoadTargetScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1093,6 +1094,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1636788808}
   m_CullTransparentMesh: 1
+--- !u!114 &1636788813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1636788808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 507d66c14ddb6034cbad9f21f3caab71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneName: Level3
 --- !u!1 &1757399497
 GameObject:
   m_ObjectHideFlags: 0
