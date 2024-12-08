@@ -76,17 +76,8 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"GameManager: Scene Loaded: {scene.name}");
-
-        //// Reset references
-        //levelManager = null;
-        //audioManager = null;
-        //// HealthManager is persistent; no need to reassign
-
-        //// Managers in the new scene should register themselves via their Awake() methods
-        //// If they fail to register, debug logs in their registration methods will notify
     }
 
-    // Scene loading methods
     public void LoadScene(string sceneName)
     {
         if (string.IsNullOrEmpty(sceneName))
@@ -141,6 +132,17 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogWarning("GameManager: Default scene name is not set in LevelManager or LevelManager is null.");
+        }
+    }
+    public void PlayBackgroundMusic()
+    {
+        if (audioManager != null)
+        {
+            audioManager.PlaySixthAudio();
+        }
+        else
+        {
+            Debug.LogError("GameManager: AudioManager is not registered. Cannot play background music.");
         }
     }
 }

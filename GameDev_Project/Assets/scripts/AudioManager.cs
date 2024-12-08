@@ -8,19 +8,27 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip thirdAudio;
     [SerializeField] private AudioClip fourthAudio;
     [SerializeField] private AudioClip fifthAudio;
+    [SerializeField] private AudioClip sixthAudio; 
 
-    private AudioSource audioSource;
+    [Header("Audio Sources")]
+    [SerializeField] private AudioSource sfxAudioSource; 
+    [SerializeField] private AudioSource bgmAudioSource; 
 
     private void Awake()
     {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
+        if (sfxAudioSource == null)
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
-            Debug.Log("AudioManager: AudioSource component added.");
+            sfxAudioSource = gameObject.AddComponent<AudioSource>();
+            Debug.Log("AudioManager: SFX AudioSource component added.");
         }
 
-        // Register with GameManager Singleton
+        if (bgmAudioSource == null)
+        {
+            bgmAudioSource = gameObject.AddComponent<AudioSource>();
+            bgmAudioSource.loop = true; 
+            Debug.Log("AudioManager: BGM AudioSource component added with looping enabled.");
+        }
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.RegisterAudioManager(this);
@@ -36,7 +44,7 @@ public class AudioManager : MonoBehaviour
     {
         if (firstAudio != null)
         {
-            audioSource.PlayOneShot(firstAudio);
+            sfxAudioSource.PlayOneShot(firstAudio);
             Debug.Log("AudioManager: Playing first audio.");
         }
         else
@@ -49,7 +57,7 @@ public class AudioManager : MonoBehaviour
     {
         if (secondAudio != null)
         {
-            audioSource.PlayOneShot(secondAudio);
+            sfxAudioSource.PlayOneShot(secondAudio);
             Debug.Log("AudioManager: Playing second audio.");
         }
         else
@@ -62,7 +70,7 @@ public class AudioManager : MonoBehaviour
     {
         if (thirdAudio != null)
         {
-            audioSource.PlayOneShot(thirdAudio);
+            sfxAudioSource.PlayOneShot(thirdAudio);
             Debug.Log("AudioManager: Playing third audio.");
         }
         else
@@ -75,7 +83,7 @@ public class AudioManager : MonoBehaviour
     {
         if (fourthAudio != null)
         {
-            audioSource.PlayOneShot(fourthAudio);
+            sfxAudioSource.PlayOneShot(fourthAudio);
             Debug.Log("AudioManager: Playing fourth audio.");
         }
         else
@@ -83,16 +91,63 @@ public class AudioManager : MonoBehaviour
             Debug.LogWarning("AudioManager: Fourth audio clip is not assigned!");
         }
     }
+
     public void PlayFifthAudio()
     {
         if (fifthAudio != null)
         {
-            audioSource.PlayOneShot(fifthAudio);
+            sfxAudioSource.PlayOneShot(fifthAudio);
             Debug.Log("AudioManager: Playing fifth audio.");
         }
         else
         {
-            Debug.LogWarning("AudioManager: Fifthh audio clip is not assigned!");
+            Debug.LogWarning("AudioManager: Fifth audio clip is not assigned!");
+        }
+    }
+
+    public void PlaySixthAudio()
+    {
+        if (sixthAudio != null)
+        {
+            if (!bgmAudioSource.isPlaying)
+            {
+                bgmAudioSource.clip = sixthAudio;
+                bgmAudioSource.Play();
+                Debug.Log("AudioManager: Playing sixth audio (Background Music).");
+            }
+            else
+            {
+                Debug.Log("AudioManager: Background music is already playing.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("AudioManager: Sixth audio clip (Background Music) is not assigned!");
+        }
+    }
+
+    public void StopSixthAudio()
+    {
+        if (bgmAudioSource.isPlaying)
+        {
+            bgmAudioSource.Stop();
+            Debug.Log("AudioManager: Stopped sixth audio (Background Music).");
+        }
+        else
+        {
+            Debug.Log("AudioManager: Background music is not playing.");
+        }
+    }
+
+    public void ToggleSixthAudio()
+    {
+        if (bgmAudioSource.isPlaying)
+        {
+            StopSixthAudio();
+        }
+        else
+        {
+            PlaySixthAudio();
         }
     }
 }
