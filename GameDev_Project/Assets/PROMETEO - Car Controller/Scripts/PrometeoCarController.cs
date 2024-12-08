@@ -13,6 +13,9 @@ public class PrometeoCarController : MonoBehaviour
 
     public float jumpDistance = 8.77f;
     public float jumpCooldown = 0.5f;
+    public bool useSounds = false;
+    public AudioSource carEngineSound;
+    public AudioSource tireScreechSound;
 
     private float lastJumpTime = 0f;
     private bool isJumping = false;
@@ -21,13 +24,11 @@ public class PrometeoCarController : MonoBehaviour
     private Quaternion jumpStartRot;
     private float jumpTimeElapsed = 0f;
 
-    // Slightly increase duration for smoother transition
     [SerializeField] private float jumpDuration = 0.3f;
 
-    // Increase turn angle for a more pronounced steering look
     private float turnAngle = 20f;
 
-    private int jumpDirection = 0; // -1 for left, +1 for right
+    private int jumpDirection = 0;
 
     public GameObject frontLeftMesh;
     public WheelCollider frontLeftCollider;
@@ -38,10 +39,13 @@ public class PrometeoCarController : MonoBehaviour
     public GameObject rearRightMesh;
     public WheelCollider rearRightCollider;
 
-    public bool useSounds = false;
-    public AudioSource carEngineSound;
-    public AudioSource tireScreechSound;
     private float initialCarEngineSoundPitch;
+
+    [Header("Engine Rev Settings")]
+    [SerializeField, Range(0f, 3f)] private float minEnginePitch = 1f;  
+    [SerializeField, Range(0f, 3f)] private float maxEnginePitch = 3f;  
+    [SerializeField, Range(0f, 1f)] private float minEngineVolume = 0.2f; 
+    [SerializeField, Range(0f, 1f)] private float maxEngineVolume = 1f;   
 
     public bool useTouchControls = false;
     public GameObject throttleButton;
@@ -58,13 +62,22 @@ public class PrometeoCarController : MonoBehaviour
     private float throttleAxis;
     private float localVelocityZ;
     private bool deceleratingCar;
-    public int posState = 2; // 1=left, 2=middle, 3=right
+    public int posState = 2;
 
     void Start()
     {
         carRigidbody = GetComponent<Rigidbody>();
         carRigidbody.centerOfMass = bodyMassCenter;
         carRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+
+        if (useSounds && carEngineSound != null)
+        {
+            initialCarEngineSoundPitch = carEngineSound.pitch;
+        }
+        else
+        {
+            Debug.LogWarning("PrometeoCarController: CarEngineSound AudioSource is not assigned or Use Sounds is disabled.");
+        }
     }
 
     void Update()
@@ -81,6 +94,9 @@ public class PrometeoCarController : MonoBehaviour
         {
             SmoothJump();
         }
+
+        // Handle Engine Rev Sound
+        HandleEngineRevSound();
     }
 
     public void MoveForward()
@@ -228,11 +244,47 @@ public class PrometeoCarController : MonoBehaviour
             if (useSounds && carEngineSound != null)
             {
                 carEngineSound.pitch = initialCarEngineSoundPitch;
+                carEngineSound.volume = minEngineVolume;
+                carEngineSound.Stop();
             }
         }
         else
         {
             ReleaseBrakes();
+        }
+    }
+
+    private void HandleEngineRevSound()
+    {
+        if (useSounds && carEngineSound != null)
+        {
+            if (carSpeed > 0.1f) 
+            {
+                if (!carEngineSound.isPlaying)
+                {
+                    carEngineSound.Play();
+                }
+
+                float speedRatio = Mathf.Clamp01(carSpeed / maxSpeed);
+
+                float targetPitch = Mathf.Lerp(minEnginePitch, maxEnginePitch, speedRatio);
+                float targetVolume = Mathf.Lerp(minEngineVolume, maxEngineVolume, speedRatio);
+
+                carEngineSound.pitch = Mathf.Lerp(carEngineSound.pitch, targetPitch, Time.deltaTime * 5f);
+                carEngineSound.volume = Mathf.Lerp(carEngineSound.volume, targetVolume, Time.deltaTime * 5f);
+            }
+            else
+            {
+                if (carEngineSound.isPlaying)
+                {
+                    carEngineSound.volume = Mathf.Lerp(carEngineSound.volume, 0f, Time.deltaTime * 5f);
+                    if (carEngineSound.volume < 0.05f)
+                    {
+                        carEngineSound.Stop();
+                        carEngineSound.volume = minEngineVolume; 
+                    }
+                }
+            }
         }
     }
 }
