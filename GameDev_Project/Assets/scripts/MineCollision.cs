@@ -4,8 +4,8 @@ using System.Collections;
 public class MineCollision : MonoBehaviour
 {
     [Header("Mine Visual Settings")]
-    [SerializeField] private float rotationSpeed = 45f;      
-    [SerializeField] private float verticalSpeed = 1f;       
+    [SerializeField] private float rotationSpeed = 45f;
+    [SerializeField] private float verticalSpeed = 1f;
     [SerializeField] private float verticalRange = 0.5f;
 
     [Header("Scene Settings")]
@@ -52,10 +52,10 @@ public class MineCollision : MonoBehaviour
 
             if (Mathf.Abs(currentY - targetY) < 0.01f)
             {
-                direction *= -1f; 
+                direction *= -1f;
             }
 
-            yield return null; 
+            yield return null;
         }
     }
 
@@ -64,7 +64,10 @@ public class MineCollision : MonoBehaviour
         Debug.Log("MineCollision: Player collided with mine.");
         if (explosionPrefab != null)
         {
-            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            // Store the instantiated explosion in a variable and detach it.
+            GameObject explosionObj = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            explosionObj.transform.SetParent(null);
+
             Debug.Log("MineCollision: Explosion effect instantiated.");
         }
         else
@@ -73,46 +76,46 @@ public class MineCollision : MonoBehaviour
         }
 
         if (gameManager != null && gameManager.healthManager != null)
+        {
+            gameManager.healthManager.LoseLife();
+            int currentLives = gameManager.healthManager.GetCurrentLives();
+            Debug.Log($"MineCollision: Life lost! Current Lives: {currentLives}");
+
+            if (gameManager.audioManager != null)
             {
-                gameManager.healthManager.LoseLife();
-                int currentLives = gameManager.healthManager.GetCurrentLives();
-                Debug.Log($"MineCollision: Life lost! Current Lives: {currentLives}");
-
-                if (gameManager.audioManager != null)
-                {
-                    gameManager.audioManager.PlayFifthAudio();
-                    Debug.Log("MineCollision: Played fifth audio (Mine collision sound).");
-                }
-                else
-                {
-                    Debug.LogError("MineCollision: AudioManager instance is null in GameManager. Cannot play collision sound.");
-                }
-
-                if (currentLives <= 0)
-                {
-                    if (gameManager.levelManager != null)
-                    {
-                        Debug.Log("MineCollision: No lives left. Loading lost scene.");
-                        gameManager.levelManager.LoadScene(lostSceneName);
-                    }
-                    else
-                    {
-                        Debug.LogError("MineCollision: LevelManager instance is null in GameManager. Cannot load lost scene.");
-                    }
-                }
+                gameManager.audioManager.PlayFifthAudio();
+                Debug.Log("MineCollision: Played fifth audio (Mine collision sound).");
             }
             else
             {
-                if (gameManager == null)
-                {
-                    Debug.LogError("MineCollision: GameManager instance is null. Cannot lose life.");
-                }
-                else if (gameManager.healthManager == null)
-                {
-                    Debug.LogError("MineCollision: HealthManager instance is null in GameManager. Cannot lose life.");
-                }
+                Debug.LogError("MineCollision: AudioManager instance is null in GameManager. Cannot play collision sound.");
             }
 
-            Destroy(gameObject);
+            if (currentLives <= 0)
+            {
+                if (gameManager.levelManager != null)
+                {
+                    Debug.Log("MineCollision: No lives left. Loading lost scene.");
+                    gameManager.levelManager.LoadScene(lostSceneName);
+                }
+                else
+                {
+                    Debug.LogError("MineCollision: LevelManager instance is null in GameManager. Cannot load lost scene.");
+                }
+            }
+        }
+        else
+        {
+            if (gameManager == null)
+            {
+                Debug.LogError("MineCollision: GameManager instance is null. Cannot lose life.");
+            }
+            else if (gameManager.healthManager == null)
+            {
+                Debug.LogError("MineCollision: HealthManager instance is null in GameManager. Cannot lose life.");
+            }
+        }
+
+        Destroy(gameObject);
     }
 }
